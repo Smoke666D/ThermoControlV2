@@ -1,0 +1,5 @@
+../Core/Src/flash_data.c:22:8:cgetREGAdr	0	static
+../Core/Src/flash_data.c:27:6:vFDWtiteReg	56	static
+../Core/Src/flash_data.c:36:6:vFDInit	8	static
+../Core/Src/flash_data.c:55:6:vFDSetRegState	8	static
+../Core/Src/flash_data.c:62:10:vFDGetRegState	8	static

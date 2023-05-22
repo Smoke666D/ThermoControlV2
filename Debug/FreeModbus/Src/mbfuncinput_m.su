@@ -1,0 +1,2 @@
+../FreeModbus/Src/mbfuncinput_m.c:71:1:eMBMasterReqReadInputRegister	24	static
+../FreeModbus/Src/mbfuncinput_m.c:95:1:eMBMasterFuncReadInputRegister	24	static

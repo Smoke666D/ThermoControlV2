@@ -1,0 +1,6 @@
+../FreeModbus/Src/mbfunccoils_m.c:86:1:eMBMasterReqReadCoils	24	static
+../FreeModbus/Src/mbfunccoils_m.c:111:1:eMBMasterFuncReadCoils	24	static
+../FreeModbus/Src/mbfunccoils_m.c:192:1:eMBMasterReqWriteCoil	24	static
+../FreeModbus/Src/mbfunccoils_m.c:217:1:eMBMasterFuncWriteCoil	16	static
+../FreeModbus/Src/mbfunccoils_m.c:285:1:eMBMasterReqWriteMultipleCoils	32	static
+../FreeModbus/Src/mbfunccoils_m.c:327:1:eMBMasterFuncWriteMultipleCoils	16	static

@@ -1,0 +1,4 @@
+../FreeModbus/Src/mbfuncholding.c:75:1:eMBFuncWriteHoldingRegister	8	static
+../FreeModbus/Src/mbfuncholding.c:108:1:eMBFuncWriteMultipleHoldingRegister	8	static
+../FreeModbus/Src/mbfuncholding.c:168:1:eMBFuncReadHoldingRegister	16	static
+../FreeModbus/Src/mbfuncholding.c:233:1:eMBFuncReadWriteMultipleHoldingRegister	24	static

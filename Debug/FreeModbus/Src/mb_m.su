@@ -1,0 +1,12 @@
+../FreeModbus/Src/mb_m.c:137:1:eMBMasterInit	8	static
+../FreeModbus/Src/mb_m.c:194:1:eMBMasterClose	8	static
+../FreeModbus/Src/mb_m.c:213:1:eMBMasterEnable	8	static
+../FreeModbus/Src/mb_m.c:231:1:eMBMasterDisable	8	static
+../FreeModbus/Src/mb_m.c:253:1:eMBMasterIsEstablished	0	static
+../FreeModbus/Src/mb_m.c:267:1:eMBMasterPoll	24	static
+../FreeModbus/Src/mb_m.c:392:6:xMBMasterGetCBRunInMasterMode	0	static
+../FreeModbus/Src/mb_m.c:397:6:vMBMasterSetCBRunInMasterMode	0	static
+../FreeModbus/Src/mb_m.c:402:7:ucMBMasterGetDestAddress	0	static
+../FreeModbus/Src/mb_m.c:407:6:vMBMasterSetDestAddress	0	static
+../FreeModbus/Src/mb_m.c:412:25:eMBMasterGetErrorType	0	static
+../FreeModbus/Src/mb_m.c:417:6:vMBMasterSetErrorType	0	static

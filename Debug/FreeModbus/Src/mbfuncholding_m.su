@@ -1,0 +1,8 @@
+../FreeModbus/Src/mbfuncholding_m.c:98:1:eMBMasterReqWriteHoldingRegister	24	static
+../FreeModbus/Src/mbfuncholding_m.c:122:1:eMBMasterFuncWriteHoldingRegister	8	static
+../FreeModbus/Src/mbfuncholding_m.c:167:1:eMBMasterReqWriteMultipleHoldingRegister	32	static
+../FreeModbus/Src/mbfuncholding_m.c:200:1:eMBMasterFuncWriteMultipleHoldingRegister	16	static
+../FreeModbus/Src/mbfuncholding_m.c:263:1:eMBMasterReqReadHoldingRegister	24	static
+../FreeModbus/Src/mbfuncholding_m.c:287:1:eMBMasterFuncReadHoldingRegister	24	static
+../FreeModbus/Src/mbfuncholding_m.c:355:1:eMBMasterReqReadWriteMultipleHoldingRegister	40	static
+../FreeModbus/Src/mbfuncholding_m.c:393:1:eMBMasterFuncReadWriteMultipleHoldingRegister	32	static

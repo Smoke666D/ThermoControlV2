@@ -1,0 +1,11 @@
+din_dout.c:90:6:eOutConfig	2
+din_dout.c:100:22:eDinConfig	3
+din_dout.c:145:6:vADCReady	2
+din_dout.c:218:8:vGetAverDataFromRAW	4
+din_dout.c:247:8:vAinGetData	1
+din_dout.c:257:10:iGetTemp	4
+din_dout.c:280:10:ucDinGet	2
+din_dout.c:287:11:uiGetDinMask	2
+din_dout.c:154:7:vDTask	9
+din_dout.c:300:7:vSetOutState	1
+din_dout.c:304:10:vGetOutState	1

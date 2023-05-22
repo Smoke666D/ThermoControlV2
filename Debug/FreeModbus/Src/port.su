@@ -1,0 +1,2 @@
+../FreeModbus/Src/port.c:29:6:EnterCriticalSection	0	static
+../FreeModbus/Src/port.c:34:6:ExitCriticalSection	0	static

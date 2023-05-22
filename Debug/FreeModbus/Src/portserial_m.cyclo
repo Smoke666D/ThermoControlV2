@@ -1,0 +1,5 @@
+portserial_m.c:55:6:xMBMasterPortSerialInit	4
+portserial_m.c:109:6:vMBMasterPortSerialEnable	3
+portserial_m.c:146:6:vMBMasterPortClose	1
+portserial_m.c:151:6:xMBMasterPortSerialPutByte	1
+portserial_m.c:158:6:xMBMasterPortSerialGetByte	1

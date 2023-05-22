@@ -1,0 +1,14 @@
+../FreeModbus/Src/mbrtu_m.c:87:1:eMBMasterRTUInit	16	static
+../FreeModbus/Src/mbrtu_m.c:131:1:eMBMasterRTUStart	8	static
+../FreeModbus/Src/mbrtu_m.c:147:1:eMBMasterRTUStop	8	static
+../FreeModbus/Src/mbrtu_m.c:156:1:eMBMasterRTUReceive	16	static
+../FreeModbus/Src/mbrtu_m.c:190:1:eMBMasterRTUSend	24	static
+../FreeModbus/Src/mbrtu_m.c:231:1:xMBMasterRTUReceiveFSM	16	static
+../FreeModbus/Src/mbrtu_m.c:298:1:xMBMasterRTUTransmitFSM	8	static
+../FreeModbus/Src/mbrtu_m.c:349:1:xMBMasterRTUTimerExpired	8	static
+../FreeModbus/Src/mbrtu_m.c:410:6:vMBMasterGetRTUSndBuf	0	static
+../FreeModbus/Src/mbrtu_m.c:416:6:vMBMasterGetPDUSndBuf	0	static
+../FreeModbus/Src/mbrtu_m.c:422:6:vMBMasterSetPDUSndLength	0	static
+../FreeModbus/Src/mbrtu_m.c:428:8:usMBMasterGetPDUSndLength	0	static
+../FreeModbus/Src/mbrtu_m.c:434:6:vMBMasterSetCurTimerMode	0	static
+../FreeModbus/Src/mbrtu_m.c:440:6:xMBMasterRequestIsBroadcast	0	static

@@ -1,0 +1,3 @@
+../FreeModbus/Src/mbutils.c:45:1:xMBUtilSetBits	12	static
+../FreeModbus/Src/mbutils.c:84:1:xMBUtilGetBits	0	static
+../FreeModbus/Src/mbutils.c:115:1:prveMBError2Exception	0	static

@@ -1,0 +1,11 @@
+../FreeModbus/Src/portevent_m.c:38:1:xMBMasterPortEventInit	8	static
+../FreeModbus/Src/portevent_m.c:46:1:xMBMasterPortEventPost	16	static,ignoring_inline_asm
+../FreeModbus/Src/portevent_m.c:98:1:xMBMasterPortEventGet	24	static
+../FreeModbus/Src/portevent_m.c:137:6:vMBMasterOsResInit	0	static
+../FreeModbus/Src/portevent_m.c:150:6:xMBMasterRunResTake	0	static
+../FreeModbus/Src/portevent_m.c:162:6:vMBMasterRunResRelease	0	static
+../FreeModbus/Src/portevent_m.c:178:6:vMBMasterErrorCBRespondTimeout	8	static
+../FreeModbus/Src/portevent_m.c:200:6:vMBMasterErrorCBReceiveData	8	static
+../FreeModbus/Src/portevent_m.c:222:6:vMBMasterErrorCBExecuteFunction	8	static
+../FreeModbus/Src/portevent_m.c:240:6:vMBMasterCBRequestScuuess	8	static
+../FreeModbus/Src/portevent_m.c:260:21:eMBMasterWaitRequestFinish	16	static

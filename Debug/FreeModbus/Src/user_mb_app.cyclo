@@ -1,0 +1,5 @@
+user_mb_app.c:47:6:vUPDATECoils	5
+user_mb_app.c:80:14:eMBRegInputCB	5
+user_mb_app.c:128:14:eMBRegHoldingCB	9
+user_mb_app.c:195:14:eMBRegCoilsCB	9
+user_mb_app.c:275:14:eMBRegDiscreteCB	3

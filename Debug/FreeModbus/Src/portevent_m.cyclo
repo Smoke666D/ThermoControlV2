@@ -1,0 +1,11 @@
+portevent_m.c:38:1:xMBMasterPortEventInit	1
+portevent_m.c:46:1:xMBMasterPortEventPost	12
+portevent_m.c:98:1:xMBMasterPortEventGet	6
+portevent_m.c:137:6:vMBMasterOsResInit	1
+portevent_m.c:150:6:xMBMasterRunResTake	1
+portevent_m.c:162:6:vMBMasterRunResRelease	1
+portevent_m.c:178:6:vMBMasterErrorCBRespondTimeout	1
+portevent_m.c:200:6:vMBMasterErrorCBReceiveData	1
+portevent_m.c:222:6:vMBMasterErrorCBExecuteFunction	1
+portevent_m.c:240:6:vMBMasterCBRequestScuuess	1
+portevent_m.c:260:21:eMBMasterWaitRequestFinish	3

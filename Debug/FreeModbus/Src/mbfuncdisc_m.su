@@ -1,0 +1,2 @@
+../FreeModbus/Src/mbfuncdisc_m.c:71:1:eMBMasterReqReadDiscreteInputs	24	static
+../FreeModbus/Src/mbfuncdisc_m.c:95:1:eMBMasterFuncReadDiscreteInputs	24	static
