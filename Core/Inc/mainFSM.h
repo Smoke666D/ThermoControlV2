@@ -15,17 +15,10 @@
 
 
 
-//#define MASTER_MODE
-#define SLAVE_MODE
+#define MASTER_MODE
+//#define SLAVE_MODE
 
- void vMainFSM(void *argument);
 
- void InitSystemEnvet(EventGroupHandle_t event);
-#ifdef MASTER_MODE
- void  prvvTIMERExpiredISR();
-
-#endif
-#ifdef SLAVE_MODE
 
 #define DIN_READY  0x0001
 #define AIN_READY  0x0002
@@ -54,15 +47,11 @@
 #define REG_COUNT 10
 
 
-
-
-
 #define FAN_SPEED_1   0x01
 #define FAN_SPEED_2   0x02
 #define CLOSED  0x01
 #define OPEN    0x02
 #define REOPEN  0x03
-
 typedef enum
 {
  VALVE_ON  = 0x01,
@@ -77,6 +66,19 @@ typedef enum
 	FAN_SPEED_MID  = 0x02,
 	FAN_SPEED_AUTO = 0x04,
  } FAN_SPEED_t;
+
+
+ void vMainFSM(void *argument);
+ void InitSystemEnvet(EventGroupHandle_t event);
+#ifdef MASTER_MODE
+ void  prvvTIMERExpiredISR();
+
+#endif
+#ifdef SLAVE_MODE
+
+
+
+
 
  void rvvTIMERExpiredISR();
 #endif

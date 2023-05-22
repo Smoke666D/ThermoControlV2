@@ -8,13 +8,14 @@
 
 #include "mainFSM.h"
 #include "mb.h"
+
 #include "../Inc/user_mb_app.h"
 #include "din_dout.h"
 
 
 static EventGroupHandle_t xSystemEventGroupHandle;
 static uint8_t mode_restart = 0;
-static void vSlaveControlFSM();
+static void vControlFSM();
 static void vMasterControlFSM();
 extern TIM_HandleTypeDef htim4;
 extern TIM_HandleTypeDef htim3;
@@ -27,14 +28,7 @@ void waitFlag( uint32_t flag)
 {
 	xEventGroupWaitBits(xSystemEventGroupHandle,   flag ,  pdFALSE, pdTRUE, portMAX_DELAY );
 }
-void setHWInitFlag( uint32_t flag)
-{
 
-}
-void resetHWInitFlag( uint32_t flag)
-{
-
-}
 
 
 static  FAN_SPEED_t current_fan_speed = FAN_SPEED_OFF;
@@ -105,14 +99,15 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
  void vMBTask(void *argument)
  {
 	 uint16_t addres = 0;
-#ifdef SLAVE_MODE
 	 waitFlag( DIN_READY );
-	 addres = (~uiGetDinMask() & DEVICE_ADDR_MASK)>>DEVICE_ADDR_OFFSET;
+	  addres = (uiGetDinMask() & DEVICE_ADDR_MASK)>>DEVICE_ADDR_OFFSET;
+#ifdef SLAVE_MODE
+
 	 eMBInit(MB_RTU,addres,0,115200,MB_PAR_ODD );
 	 eMBEnable(  );
 #endif
 #ifdef MASTER_MODE
-	 eMBMasterInit(MB_RTU,0x01,0,115200,MB_PAR_ODD );
+	 eMBMasterInit(MB_RTU,0,115200,MB_PAR_ODD );
 	 eMBMasterEnable();
 #endif
 	 xEventGroupSetBits(xSystemEventGroupHandle,  MB_READY );
@@ -141,7 +136,12 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
  {
 	 return (0.1);
  }
-uint16_t PWM_STATE = 0;
+
+#ifdef SLAVE_MODE
+ /*
+  * Функция управления ШИМ
+  */
+static uint16_t PWM_STATE = 0;
 static void vSetPWM( uint16_t pwm)
 {
 	TIM_OC_InitTypeDef sConfigOC = {0};
@@ -159,8 +159,9 @@ static void vSetPWM( uint16_t pwm)
 		}
 	}
 }
-
-
+/*
+ * Процес обработки состояний выходов
+ */
  static void DOUT_PROCESS()
  {
 	 uint8_t K2,K3,K1;
@@ -203,6 +204,7 @@ static void vSetPWM( uint16_t pwm)
 	     vSetOutState( OUT_4, usGetRegInput(WATER_VALVE) );
 	 }
  }
+#endif
 
 #define HW_DOOR_MASK 0x1
 #define AW_DOOR_MASK 0x2
@@ -231,16 +233,6 @@ static void vSetPWM( uint16_t pwm)
  }
 
 
-void vMasterTask()
-{
-	//Инициализация типа системы
-		MAIN_FSM_STATE_t InitFSM = STANDBAY_STATE;
-		while(1)
-		{
-
-		}
-
-}
 
 void vDATATask(void *argument)
 
@@ -250,7 +242,7 @@ void vDATATask(void *argument)
 
 	 while(1)
 	 {
-		 setHWInitFlag( PROCESS_DATA);
+
 		 vSetRegInput(FSM_STATUS, control_state);
 		 vTaskDelay(10);
 		 switch (InitFSM)
@@ -267,6 +259,7 @@ void vDATATask(void *argument)
 		 		 break;
 		 	 case WORK_STATE:
 		 		INPUT_PROCESS();
+#ifdef SLAVE_MODE
 		 		if (mode_restart == 1)
 		 		{
 		 			if (usGetRegInput(TYPE)==NONE)
@@ -288,12 +281,15 @@ void vDATATask(void *argument)
 		 			}
 		 			mode_restart = 0;
 		 		}
-		 		vSlaveControlFSM();
+#endif
+		 		vControlFSM();
+#ifdef SLAVE_MODE
 		 		DOUT_PROCESS();
+#endif
 		 		break;
 
 		 }
-		 resetHWInitFlag( PROCESS_DATA);
+
 	 }
  }
 
@@ -304,6 +300,7 @@ void vTimer1sInc()
 	sTimer++;
 
 }
+
 
 uint16_t TimerTriger = 0;
  uint8_t GetTimer(uint16_t time)
@@ -334,7 +331,7 @@ void ResetTimer()
 	TimerTriger = 0;
 }
 
-
+#ifdef SLAVE_MODE
 /*
  *
  */
@@ -353,7 +350,7 @@ static void vSetState( FAN_SPEED_t speed ,VALVE_STATE_t state )
 	vSetRegInput(FAN_SPEED, current_fan_speed );
 }
 
-static void vSlaveControlFSM()
+static void vControlFSM()
  {
 		switch(control_state )
 		{
@@ -509,9 +506,13 @@ static void vSlaveControlFSM()
 					 break;
 			}
  }
-void vMasterControlFSM()
+#endif
+
+#ifdef MASTER_MODE
+static void vControlFSM()
 {
 	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
 	//errorCode = eMBMasterReqWriteHoldingRegister(0,3,usModbusUserData[0],RT_WAITING_FOREVER);
 
 }
+#endif

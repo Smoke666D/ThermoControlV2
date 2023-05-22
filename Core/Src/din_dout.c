@@ -4,8 +4,8 @@
  *  Created on: May 11, 2023
  *      Author: i.dymov
  */
-#include "main.h"
 
+#include "main.h"
 
 const uint16_t Resistanse[][2] = {{0,32742},
 								 {1,31113},
@@ -68,16 +68,25 @@ const  PIN_CONFIG xDinPortConfig[DIN_CHANNEL]= {{SW1_Pin,SW1_GPIO_Port},
 												{SW6_Pin,SW6_GPIO_Port},
 												{SW7_Pin,SW7_GPIO_Port},
 												{SW8_Pin,SW8_GPIO_Port}
+#ifdef MASTER_MODE
+,{S1_Pin,S1_GPIO_Port},
+{S2_Pin,S2_GPIO_Port},
+{S3_Pin,S3_GPIO_Port},
+{S4_Pin,S4_GPIO_Port}
+#endif
 };
+#ifdef SLAVE_MODE
 const PIN_CONFIG xDoutPortConfig[DOUT_CHANNEL] = {{K2_Pin,K2_GPIO_Port},
 												  {K4_Pin,K4_GPIO_Port},
 												  {K6_Pin,K6_GPIO_Port},
 												  {K8_Pin,K8_GPIO_Port}};
-
+#endif
 static uint16_t ADC_RAW[ADC1_CHANNELS ];
 static uint16_t ADC_OLD_RAW[ADC1_CHANNELS ];
 static uint16_t ADC1_DMABuffer[ADC1_CHANNELS *ADC_FRAME_SIZE ];
+#ifdef SLAVE_MODE
 static DoutConfig_t xDoutConfig[ DOUT_CHANNEL];
+#endif
 static DinConfig_t xDinConfig[ DIN_CHANNEL];
 static EventGroupHandle_t xSystemEventGroupHandle;
 static uint8_t DataReadyFlag = 0;
@@ -87,6 +96,7 @@ extern ADC_HandleTypeDef hadc1;
 /*
  *
  */
+#ifdef SLAVE_MODE
 void eOutConfig( uint8_t channel, DOUT_OUT_TYPE type)
 {
 	if ( channel < DOUT_CHANNEL)
@@ -94,6 +104,7 @@ void eOutConfig( uint8_t channel, DOUT_OUT_TYPE type)
 		xDoutConfig[channel].eOutConfig = type;
 	}
 }
+#endif
 /*
  *
  */
@@ -125,18 +136,27 @@ DIN_FUNCTION_ERROR_t eDinConfig( uint8_t ucCh, DIN_INPUT_TYPE inType, uint32_t u
 
 static void vDINInit()
 {
-	eDinConfig( INPUT_1, DIN_CONFIG_POSITIVE , DEF_H_FRONT, DEF_L_FRONT );
-	eDinConfig( INPUT_2, DIN_CONFIG_POSITIVE , DEF_H_FRONT, DEF_L_FRONT );
-	eDinConfig( INPUT_3, DIN_CONFIG_POSITIVE , DEF_H_FRONT, DEF_L_FRONT );
-	eDinConfig( INPUT_4, DIN_CONFIG_POSITIVE , DEF_H_FRONT, DEF_L_FRONT );
-	eDinConfig( INPUT_5, DIN_CONFIG_POSITIVE , DEF_H_FRONT, DEF_L_FRONT );
-	eDinConfig( INPUT_6, DIN_CONFIG_POSITIVE , DEF_H_FRONT, DEF_L_FRONT );
-	eDinConfig( INPUT_7, DIN_CONFIG_POSITIVE , DEF_H_FRONT, DEF_L_FRONT );
-	eDinConfig( INPUT_8, DIN_CONFIG_POSITIVE , DEF_H_FRONT, DEF_L_FRONT );
+	eDinConfig( INPUT_1, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
+	eDinConfig( INPUT_2, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
+	eDinConfig( INPUT_3, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
+	eDinConfig( INPUT_4, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
+	eDinConfig( INPUT_5, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
+	eDinConfig( INPUT_6, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
+	eDinConfig( INPUT_7, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
+	eDinConfig( INPUT_8, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
+#ifdef MASTER_MODE
+	eDinConfig( INPUT_9, DIN_CONFIG_POSITIVE , DEF_H_FRONT, DEF_L_FRONT );
+	eDinConfig( INPUT_10, DIN_CONFIG_POSITIVE , DEF_H_FRONT, DEF_L_FRONT );
+	eDinConfig( INPUT_11, DIN_CONFIG_POSITIVE , DEF_H_FRONT, DEF_L_FRONT );
+	eDinConfig( INPUT_12, DIN_CONFIG_POSITIVE , DEF_H_FRONT, DEF_L_FRONT );
+
+#endif
+#ifdef SLAVE_MODE
 	eOutConfig( OUT_1, OUT_CONFIG_POSITIVE);
 	eOutConfig( OUT_2, OUT_CONFIG_POSITIVE);
 	eOutConfig( OUT_3, OUT_CONFIG_POSITIVE);
 	eOutConfig( OUT_4, OUT_CONFIG_POSITIVE);
+#endif
 	for (uint8_t i=0; i<ADC1_CHANNELS;i++)
 	{
 		 ADC_OLD_RAW[i] = 0x00;
@@ -174,12 +194,12 @@ void vADCReady()
 			   }
 
 			}
-
+#ifdef SLAVE_MODE
 			for (uint8_t i= 0U; i < DOUT_CHANNEL; i++)
 			{
 				HAL_GPIO_WritePin(xDoutPortConfig[i].GPIOx, xDoutPortConfig[i].Pin, xDoutConfig[i].state == 0 ? GPIO_PIN_RESET: GPIO_PIN_SET );
 			}
-
+#endif
 			for (uint8_t i = 0U; i < DIN_CHANNEL; i++)
 					{
 						if ( xDinConfig[i].eInputType != RPM_CONFIG )
@@ -206,7 +226,7 @@ void vADCReady()
 			vGetAverDataFromRAW(&ADC1_DMABuffer[0],&ADC_RAW[0],0,0,3,3);
 			vSetRegInput(WATER_TEMP  , iGetTemp(1));
 			vSetRegInput(IN_AIR_TEMP , iGetTemp(2));
-			vSetRegInput(TYPE, (~uiGetDinMask() & DEVICE_MODE_MASK)>>DEVICE_MODE_OFFSET );
+			vSetRegInput(TYPE, (uiGetDinMask() & DEVICE_MODE_MASK)>>DEVICE_MODE_OFFSET );
 
 	  }
  }
@@ -294,6 +314,8 @@ static uint16_t vRCFilter( uint16_t input,uint16_t * old_output)
  	}
  	return ( uiMask );
  }
+
+#ifdef SLAVE_MODE
  /*
   *
   */
@@ -305,5 +327,5 @@ static uint16_t vRCFilter( uint16_t input,uint16_t * old_output)
  {
 	 return xDoutConfig[channel].state;
  }
-
+#endif
 

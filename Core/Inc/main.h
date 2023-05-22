@@ -31,8 +31,9 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "din_dout.h"
 #include "mainFSM.h"
+#include "din_dout.h"
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

@@ -3,3 +3,6 @@ portserial_m.c:109:6:vMBMasterPortSerialEnable	3
 portserial_m.c:146:6:vMBMasterPortClose	1
 portserial_m.c:151:6:xMBMasterPortSerialPutByte	1
 portserial_m.c:158:6:xMBMasterPortSerialGetByte	1
+portserial_m.c:168:6:HAL_UART_TxCpltCallback	3
+portserial_m.c:194:6:StartUARTTask	2
+portserial_m.c:214:6:HAL_UART_RxCpltCallback	1

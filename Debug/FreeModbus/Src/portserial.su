@@ -3,6 +3,3 @@
 ../FreeModbus/Src/portserial.c:165:6:vMBPortClose	0	static
 ../FreeModbus/Src/portserial.c:170:6:xMBPortSerialPutByte	16	static
 ../FreeModbus/Src/portserial.c:179:6:xMBPortSerialGetByte	0	static
-../FreeModbus/Src/portserial.c:188:6:HAL_UART_TxCpltCallback	16	static,ignoring_inline_asm
-../FreeModbus/Src/portserial.c:214:6:StartUARTTask	32	static
-../FreeModbus/Src/portserial.c:236:6:HAL_UART_RxCpltCallback	8	static

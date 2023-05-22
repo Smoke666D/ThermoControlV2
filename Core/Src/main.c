@@ -705,7 +705,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
 	 if (htim->Instance == TIM2) {
-		 rvvTIMERExpiredISR();
+		// rvvTIMERExpiredISR();
 	  }
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM1) {

@@ -8,8 +8,14 @@
 #ifndef INC_DIN_DOUT_H_
 #define INC_DIN_DOUT_H_
 
-#define  DIN_CHANNEL  8
-#define DOUT_CHANNEL  4
+#ifdef SLAVE_MODE
+	#define  DIN_CHANNEL  8
+	#define  DOUT_CHANNEL  4
+#endif
+#ifdef MASTER_MODE
+	#define  DIN_CHANNEL  12
+#endif
+
 #define DEF_H_FRONT 10U
 #define DEF_L_FRONT 10U
 

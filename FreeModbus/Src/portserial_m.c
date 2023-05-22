@@ -191,7 +191,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 
 
 
-void StartUARTask(void *argument)
+void StartUARTTask(void *argument)
 {
 	  EventBits_t uxBits;
 	  while(1)
@@ -215,7 +215,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	rx_data = rx_data_buf;
 	HAL_UART_Receive_IT(&huart1,&rx_data_buf,1);
-	 pxMBMasterFrameCBByteReceived();
+	pxMBMasterFrameCBByteReceived();
 }
 
 #endif
