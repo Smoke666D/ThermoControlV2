@@ -107,7 +107,7 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 	 uint16_t addres = 0;
 #ifdef SLAVE_MODE
 	 waitFlag( DIN_READY );
-	 addres = (~uiGetDinMask() & DEVICE_ADDR_MASK)>>DEVICE_ADDR_OFFSET;
+	 addres = (uiGetDinMask() & DEVICE_ADDR_MASK)>>DEVICE_ADDR_OFFSET;
 	 eMBInit(MB_RTU,addres,0,115200,MB_PAR_ODD );
 	 eMBEnable(  );
 #endif

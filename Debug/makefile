@@ -68,8 +68,8 @@ all: main-build
 main-build: ThermoControl.elf secondary-outputs
 
 # Tool invocations
-ThermoControl.elf ThermoControl.map: $(OBJS) $(USER_OBJS) C:\Users\i.dymov\Documents\ThermoControl\STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "ThermoControl.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\i.dymov\Documents\ThermoControl\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="ThermoControl.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+ThermoControl.elf ThermoControl.map: $(OBJS) $(USER_OBJS) C:\Users\i.dymov\Documents\ThermoControlV2\STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "ThermoControl.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\i.dymov\Documents\ThermoControlV2\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="ThermoControl.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
