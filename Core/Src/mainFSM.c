@@ -105,9 +105,10 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
  void vMBTask(void *argument)
  {
 	 uint16_t addres = 0;
-#ifdef SLAVE_MODE
 	 waitFlag( DIN_READY );
 	 addres = (uiGetDinMask() & DEVICE_ADDR_MASK)>>DEVICE_ADDR_OFFSET;
+#ifdef SLAVE_MODE
+
 	 eMBInit(MB_RTU,addres,0,115200,MB_PAR_ODD );
 	 eMBEnable(  );
 #endif
@@ -137,10 +138,7 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
  MODE_t mode = OFF_MODE;
  uint8_t door_state = 0;
 
- float getAIN(uint8_t chennel)
- {
-	 return (0.1);
- }
+
 uint16_t PWM_STATE = 0;
 static void vSetPWM( uint16_t pwm)
 {
@@ -165,7 +163,6 @@ static void vSetPWM( uint16_t pwm)
  {
 	 uint8_t K2,K3,K1;
 	 vSetPWM(usGetReg(PWM));
-
 	 if (usGetRegInput(TYPE) == NONE)
 	 {
 		 vUPDATECoils(1);
@@ -209,10 +206,8 @@ static void vSetPWM( uint16_t pwm)
 
  static void INPUT_PROCESS()
  {
-	 uint8_t data;
-	 data = data | ( (uiGetDinMask() & DEVICE_DOOR_MASK) >> DEVICE_DOOR_OFFSET);
 
-	 if (data )
+	 if (usGetRegInput(DOOR_STATE) == OPEN)
 	 {
 		if (usGetRegInput(DOOR_STATE_TRIGGER)  == OPEN )
 		{
@@ -222,12 +217,8 @@ static void vSetPWM( uint16_t pwm)
 		{
 			vSetRegInput(DOOR_STATE_TRIGGER,OPEN);
 		}
-	 	vSetRegInput(DOOR_STATE,OPEN);
 	 }
-	 else
-	 {
-	 	vSetRegInput(DOOR_STATE,CLOSED);
-	 }
+
  }
 
 
