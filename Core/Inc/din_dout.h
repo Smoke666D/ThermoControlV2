@@ -8,7 +8,7 @@
 #ifndef INC_DIN_DOUT_H_
 #define INC_DIN_DOUT_H_
 
-#define  DIN_CHANNEL  8
+#define  DIN_CHANNEL  9
 #define DOUT_CHANNEL  4
 #define DEF_H_FRONT 10U
 #define DEF_L_FRONT 10U

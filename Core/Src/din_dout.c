@@ -67,7 +67,8 @@ const  PIN_CONFIG xDinPortConfig[DIN_CHANNEL]= {{SW1_Pin,SW1_GPIO_Port},
 												{SW5_Pin,SW5_GPIO_Port},
 												{SW6_Pin,SW6_GPIO_Port},
 												{SW7_Pin,SW7_GPIO_Port},
-												{SW8_Pin,SW8_GPIO_Port}
+												{SW8_Pin,SW8_GPIO_Port},
+												{DOOR_Pin,DOOR_GPIO_Port}
 };
 const PIN_CONFIG xDoutPortConfig[DOUT_CHANNEL] = {{K2_Pin,K2_GPIO_Port},
 												  {K4_Pin,K4_GPIO_Port},
@@ -133,6 +134,7 @@ static void vDINInit()
 	eDinConfig( INPUT_6, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
 	eDinConfig( INPUT_7, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
 	eDinConfig( INPUT_8, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
+	eDinConfig( INPUT_9, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
 	eOutConfig( OUT_1, OUT_CONFIG_POSITIVE);
 	eOutConfig( OUT_2, OUT_CONFIG_POSITIVE);
 	eOutConfig( OUT_3, OUT_CONFIG_POSITIVE);
@@ -199,7 +201,6 @@ void vADCReady()
 									xDinConfig[i].ulCounter = 0U;
 							}
 						}
-
 			}
 			xEventGroupWaitBits(xSystemEventGroupHandle,  AIN_READY,  pdFALSE, pdTRUE, portMAX_DELAY );
 			HAL_ADC_Stop_DMA(&hadc1);
@@ -207,7 +208,7 @@ void vADCReady()
 			vSetRegInput(WATER_TEMP  , iGetTemp(1));
 			vSetRegInput(IN_AIR_TEMP , iGetTemp(2));
 			vSetRegInput(TYPE, (uiGetDinMask() & DEVICE_MODE_MASK)>>DEVICE_MODE_OFFSET );
-
+			vSetRegInput(DOOR_STATE, (uiGetDinMask() & DEVICE_DOOR_MASK)>>DEVICE_DOOR_OFFSET );
 	  }
  }
 

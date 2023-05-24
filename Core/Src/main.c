@@ -471,7 +471,7 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler =2;
+  htim3.Init.Prescaler = 2;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 1000;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -640,11 +640,11 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : S1_Pin S2_Pin S3_Pin S4_Pin
-                           SW7_Pin SW6_Pin SW5_Pin SW4_Pin
-                           SW3_Pin SW2_Pin SW1_Pin */
+                           DOOR_Pin SW7_Pin SW6_Pin SW5_Pin
+                           SW4_Pin SW3_Pin SW2_Pin SW1_Pin */
   GPIO_InitStruct.Pin = S1_Pin|S2_Pin|S3_Pin|S4_Pin
-                          |SW7_Pin|SW6_Pin|SW5_Pin|SW4_Pin
-                          |SW3_Pin|SW2_Pin|SW1_Pin;
+                          |DOOR_Pin|SW7_Pin|SW6_Pin|SW5_Pin
+                          |SW4_Pin|SW3_Pin|SW2_Pin|SW1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);

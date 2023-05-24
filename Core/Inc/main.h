@@ -74,6 +74,8 @@ void vTimerInit(uint16_t timeout);
 #define S3_GPIO_Port GPIOB
 #define S4_Pin GPIO_PIN_10
 #define S4_GPIO_Port GPIOB
+#define DOOR_Pin GPIO_PIN_11
+#define DOOR_GPIO_Port GPIOB
 #define K2_Pin GPIO_PIN_12
 #define K2_GPIO_Port GPIOB
 #define K4_Pin GPIO_PIN_13
