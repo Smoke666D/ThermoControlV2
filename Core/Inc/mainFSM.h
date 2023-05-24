@@ -40,6 +40,9 @@
 #define DEVICE_DOOR_MASK  0x010
 #define DEVICE_DOOR_OFFSET 8
 
+#define WATER_TEMP_ERROR       0x01
+#define AIR_TEMP_ERROR       0x02
+#define CONNECTION_ERROR 0x04
 
 
 #define  DEVICE_DINPUT_START   0
@@ -47,7 +50,7 @@
 #define  DEVICE_COIL_START     (DEVICE_DINPUT_START + DEVICE_DINPUT)
 #define  DEVICE_COIL		   4
 #define  DEVICE_INPUT_START    ( DEVICE_COIL_START + DEVICE_COIL)
-#define  DEVICE_INPUT		   8
+#define  DEVICE_INPUT		   9
 #define  DEVICE_HOLDING_START  (DEVICE_INPUT_START + DEVICE_INPUT)
 #define  DEVICE_HOLDING        30
 #define  DEVICE_HOLDING_FLASG  5
@@ -84,6 +87,9 @@ typedef enum
 #define DEVICE_TYPE_BN_REG   0x00
 
 
+#define STANDBY_WATER_ON_TEMP  20
+#define STANDBY_WATER_OFF_TEMP 30
+
  typedef enum
  {
    TYPE = 0,
@@ -94,6 +100,7 @@ typedef enum
    FAN_SPEED = 5,
    DOOR_STATE =6,
    DOOR_STATE_TRIGGER = 7,
+   ERROR_STATUS = 8,
    MODE = 0,
    FAN_SPEED_CONFIG = 1,
    WORK_TEMP = 2,
@@ -110,8 +117,6 @@ typedef enum
    PREHEAT_OFF_TIME = 13,
    WATER_FREEZE_TEMP = 14,
    FAN_OFF_AW_TEMP = 15,
-   STANDBY_WATER_ON_TEMP = 16,
-   STANDBY_WATER_OFF_TEMP = 17,
    DOOR_CLOSE_TIME = 18,
  } REGS_t;
 #define REG_COUNT  10
@@ -162,4 +167,6 @@ EventGroupHandle_t xGetOSEvent();
 EventGroupHandle_t xGetUARTEvent();
 uint16_t usGetReg( REGS_t reg_addr);
 void vSetReg(REGS_t reg_addr, uint16_t data);
+uint16_t usGetRegInput( REGS_t reg_addr);
+void vSetRegInput(REGS_t reg_addr, uint16_t data);
 #endif /* SRC_MAINFSM_H_ */

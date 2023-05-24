@@ -31,8 +31,10 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "din_dout.h"
 #include "mainFSM.h"
+#include "ain.h"
+#include "din_dout.h"
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -62,10 +64,10 @@ void vTimerInit(uint16_t timeout);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define LED_R_Pin GPIO_PIN_4
-#define LED_R_GPIO_Port GPIOA
-#define LED_G_Pin GPIO_PIN_5
+#define LED_G_Pin GPIO_PIN_4
 #define LED_G_GPIO_Port GPIOA
+#define LED_R_Pin GPIO_PIN_5
+#define LED_R_GPIO_Port GPIOA
 #define S1_Pin GPIO_PIN_0
 #define S1_GPIO_Port GPIOB
 #define S2_Pin GPIO_PIN_1

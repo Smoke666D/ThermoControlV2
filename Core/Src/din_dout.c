@@ -7,6 +7,28 @@
 #include "main.h"
 
 
+const uint16_t CalPoint[20][2] = {{0,32742},
+								 {5,25451},
+								 {10,19936},
+								 {15,15731},
+								 {17,14337},
+								 {18,13693},
+								 {20,12500},
+								 {21,11948},
+								 {22,11423},
+								 {23,10925},
+								 {25,10000},
+								 {26,9570},
+								 {27,9162},
+								 {28,8773},
+								 {29,8403},
+								 {30,8051},
+								 {35,6523},
+								 {40,5315},
+								 {45,4355},
+							     {50,3593}
+};
+
 const uint16_t Resistanse[][2] = {{0,32742},
 								 {1,31113},
 								 {2,29575},
@@ -126,6 +148,7 @@ DIN_FUNCTION_ERROR_t eDinConfig( uint8_t ucCh, DIN_INPUT_TYPE inType, uint32_t u
 
 static void vDINInit()
 {
+	POINT_t d[2];
 	eDinConfig( INPUT_1, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
 	eDinConfig( INPUT_2, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
 	eDinConfig( INPUT_3, DIN_CONFIG_NEGATIVE, DEF_H_FRONT, DEF_L_FRONT );
@@ -135,10 +158,31 @@ static void vDINInit()
 	eDinConfig( INPUT_7, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
 	eDinConfig( INPUT_8, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
 	eDinConfig( INPUT_9, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
+#ifdef SLAVE_MODE
+
+	eAinCalDataConfig(AIN_2,20);
+	for (int i = 0;i<19;i++)
+	{
+		d[0].X = CalPoint[i][1];
+		d[0].Y = CalPoint[i][0];
+		d[1].X = CalPoint[i+1][1];
+		d[1].Y = CalPoint[i+1][0];
+		eSetAinCalPoint(AIN_2,&d[0],i);
+	}
+	eAinCalDataConfig(AIN_3,20);
+	for (int i = 0;i<19;i++)
+	{
+		d[0].X = CalPoint[i][1];
+		d[0].Y = CalPoint[i][0];
+		d[1].X = CalPoint[i+1][1];
+		d[1].Y = CalPoint[i+1][0];
+		eSetAinCalPoint(AIN_3,&d[0],i);
+	}
 	eOutConfig( OUT_1, OUT_CONFIG_POSITIVE);
 	eOutConfig( OUT_2, OUT_CONFIG_POSITIVE);
 	eOutConfig( OUT_3, OUT_CONFIG_POSITIVE);
 	eOutConfig( OUT_4, OUT_CONFIG_POSITIVE);
+#endif
 	for (uint8_t i=0; i<ADC1_CHANNELS;i++)
 	{
 		 ADC_OLD_RAW[i] = 0x00;
@@ -155,7 +199,7 @@ void vADCReady()
 
  void vDTask(void *argument)
  {
-
+volatile float temp1;
 	  uint16_t temp = 0;
 	  uint8_t init_timer = 0;
 	  xSystemEventGroupHandle =  xGetSystemControlEvent();
@@ -164,7 +208,6 @@ void vADCReady()
 	  {
 		    HAL_ADC_Start_DMA(&hadc1,&ADC1_DMABuffer[0], 9);
 		  	vTaskDelay(1);
-
 			HAL_GPIO_WritePin( LED_G_GPIO_Port, LED_G_Pin,GPIO_PIN_SET);
 			if (DataReadyFlag == 0)
 			{
@@ -176,12 +219,12 @@ void vADCReady()
 			   }
 
 			}
-
+#ifdef SLAVE_MODE
 			for (uint8_t i= 0U; i < DOUT_CHANNEL; i++)
 			{
 				HAL_GPIO_WritePin(xDoutPortConfig[i].GPIOx, xDoutPortConfig[i].Pin, xDoutConfig[i].state == 0 ? GPIO_PIN_RESET: GPIO_PIN_SET );
 			}
-
+#endif
 			for (uint8_t i = 0U; i < DIN_CHANNEL; i++)
 					{
 						if ( xDinConfig[i].eInputType != RPM_CONFIG )
@@ -205,8 +248,31 @@ void vADCReady()
 			xEventGroupWaitBits(xSystemEventGroupHandle,  AIN_READY,  pdFALSE, pdTRUE, portMAX_DELAY );
 			HAL_ADC_Stop_DMA(&hadc1);
 			vGetAverDataFromRAW(&ADC1_DMABuffer[0],&ADC_RAW[0],0,0,3,3);
-			vSetRegInput(WATER_TEMP  , iGetTemp(1));
-			vSetRegInput(IN_AIR_TEMP , iGetTemp(2));
+			temp1 = vAinGetData(AIN_2);
+			if (temp1>35000)
+			{
+				vSetRegInput(WATER_TEMP,-1);
+				vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) | WATER_TEMP_ERROR);
+			}
+			else
+			{
+				vSetRegInput(WATER_TEMP, (uint16_t)fGetAinCalData(AIN_2,temp1));
+				vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) & ~WATER_TEMP_ERROR);
+			}
+			temp1 = vAinGetData(AIN_3);
+			if (temp1>35000)
+			{
+				vSetRegInput(IN_AIR_TEMP, -1);
+				vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) | AIR_TEMP_ERROR);
+			}
+			else
+			{
+				vSetRegInput(IN_AIR_TEMP,(uint16_t)fGetAinCalData(AIN_3,temp1));
+				vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) & ~AIR_TEMP_ERROR);
+			}
+
+		//	vSetRegInput(WATER_TEMP  , iGetTemp(1));
+		//	vSetRegInput(IN_AIR_TEMP , iGetTemp(2));
 			vSetRegInput(TYPE, (uiGetDinMask() & DEVICE_MODE_MASK)>>DEVICE_MODE_OFFSET );
 			vSetRegInput(DOOR_STATE, (uiGetDinMask() & DEVICE_DOOR_MASK)>>DEVICE_DOOR_OFFSET );
 	  }
@@ -245,7 +311,7 @@ static uint16_t vRCFilter( uint16_t input,uint16_t * old_output)
 	return output;
 }
 
- float vAinGetData(AIN_INPUT_NAME channel)
+uint16_t vAinGetData(AIN_INPUT_NAME channel)
  {
 	 float temp;
 	 ADC_RAW[channel] = vRCFilter(ADC_RAW[channel], &ADC_OLD_RAW[channel]);

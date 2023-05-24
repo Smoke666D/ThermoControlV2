@@ -16,6 +16,7 @@ static EventGroupHandle_t xSystemEventGroupHandle;
 static uint8_t mode_restart = 0;
 static void vSlaveControlFSM();
 static void vMasterControlFSM();
+static void vSetState( FAN_SPEED_t speed ,VALVE_STATE_t state );
 extern TIM_HandleTypeDef htim4;
 extern TIM_HandleTypeDef htim3;
 
@@ -41,8 +42,8 @@ static  FAN_SPEED_t current_fan_speed = FAN_SPEED_OFF;
 static VALVE_STATE_t  valve_state = VALVE_OFF;
 static control_flsm_t control_state = INIT_STATE;
 uint16_t input_regs[REG_COUNT];
-uint16_t system_regs[DEVICE_HOLDING_FLASG ];// ={0,0,0,0,0,88,99,0,0,0};
-
+uint16_t system_regs[DEVICE_HOLDING_FLASG ];
+uint8_t connection;
 /*REGS_t
  *
  */
@@ -55,6 +56,10 @@ uint16_t usGetReg( REGS_t reg_addr)
 	}
 	else
 	{
+		if (reg_addr == MODE)
+		{
+			connection = 1;
+		}
 		usRes = system_regs[reg_addr];
 	}
 	return  (usRes);
@@ -158,11 +163,29 @@ static void vSetPWM( uint16_t pwm)
 	}
 }
 
-
+static uint16_t timeout = 0;
+static uint16_t timer = 0;
  static void DOUT_PROCESS()
  {
 	 uint8_t K2,K3,K1;
 	 vSetPWM(usGetReg(PWM));
+     if ((usGetRegInput(ERROR_STATUS) &  WATER_TEMP_ERROR ) || ( (usGetRegInput(ERROR_STATUS) & AIR_TEMP_ERROR) && (usGetRegInput(TYPE)==HW)))
+     {
+    	 timeout= 50;
+     }
+     else
+    	timeout =0;
+     if (timeout)
+     {
+       timer++;
+       if (timer>=timeout)
+       {
+    	   timer =0;
+    	 HAL_GPIO_TogglePin( LED_R_GPIO_Port, LED_R_Pin);
+       }
+     }
+     else
+    	 HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin,GPIO_PIN_RESET);
 	 if (usGetRegInput(TYPE) == NONE)
 	 {
 		 vUPDATECoils(1);
@@ -269,6 +292,7 @@ void vDATATask(void *argument)
 		 			switch (usGetReg(MODE))
 		 		    {
 		 			  case OFF_MODE:
+		 				  vSetState(FAN_SPEED_OFF, VALVE_ON);
 		 				  control_state = STANDBY;
 		 				  break;
 		 			  case MANUAL_MODE:
@@ -349,12 +373,12 @@ static void vSlaveControlFSM()
 		switch(control_state )
 		{
 			case STANDBY: //Дежурный режим
-				if ( usGetRegInput(WATER_TEMP) <= usGetReg(  STANDBY_WATER_ON_TEMP) )
+				if ( usGetRegInput(WATER_TEMP) <=  STANDBY_WATER_ON_TEMP )
 				{
 					vSetState(FAN_SPEED_OFF, VALVE_ON);
 					break;
 				}
-			    if (usGetRegInput(WATER_TEMP) >= usGetReg(  STANDBY_WATER_OFF_TEMP) )
+			    if (usGetRegInput(WATER_TEMP) >=   STANDBY_WATER_OFF_TEMP )
 				{
 			    	vSetState(FAN_SPEED_OFF, VALVE_OFF);
 			    	break;
@@ -504,5 +528,4 @@ void vMasterControlFSM()
 {
 	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
 	//errorCode = eMBMasterReqWriteHoldingRegister(0,3,usModbusUserData[0],RT_WAITING_FOREVER);
-
 }

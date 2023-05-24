@@ -8,12 +8,19 @@
 #ifndef INC_DIN_DOUT_H_
 #define INC_DIN_DOUT_H_
 
-#define  DIN_CHANNEL  9
+#ifdef SLAVE_MODE
+#define DIN_CHANNEL  9
 #define DOUT_CHANNEL  4
+#endif
+#ifdef MASTER_MODE
+#define DIN_CHANNEL  12
+
+#endif
 #define DEF_H_FRONT 10U
 #define DEF_L_FRONT 10U
 
 #define ADC1_CHANNELS      3U
+#define AIN_NUMBER ADC1_CHANNELS
 #define ADC_FRAME_SIZE     3U
 
 #define K   ( 3.3 / 0xFFF )
@@ -106,4 +113,5 @@ void vADCReady();
  void vSetOutState( uint8_t channel, uint8_t state);
  uint8_t vGetOutState(uint8_t channel);
  int16_t iGetTemp( AIN_INPUT_NAME channel );
+ uint16_t vAinGetData(AIN_INPUT_NAME channel);
 #endif /* INC_DIN_DOUT_H_ */

@@ -1,3 +1,4 @@
+"./Core/Src/ain.o"
 "./Core/Src/din_dout.o"
 "./Core/Src/flash_data.o"
 "./Core/Src/freertos.o"
