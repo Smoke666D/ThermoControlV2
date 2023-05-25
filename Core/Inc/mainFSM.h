@@ -15,8 +15,8 @@
 
 
 
-//#define MASTER_MODE
-#define SLAVE_MODE
+#define MASTER_MODE
+//#define SLAVE_MODE
 
  void vMainFSM(void *argument);
 
@@ -25,7 +25,7 @@
  void  prvvTIMERExpiredISR();
 
 #endif
-#ifdef SLAVE_MODE
+
 
 #define DIN_READY  0x0001
 #define AIN_READY  0x0002
@@ -39,6 +39,10 @@
 #define DEVICE_MODE_OFFSET 0x04
 #define DEVICE_DOOR_MASK  0x010
 #define DEVICE_DOOR_OFFSET 8
+#define DEVICE_FAN_MASK  0x0300
+#define DEVICE_FAN_OFFSET 8
+#define DEVICE_TYPE_MASK   0xC00
+#define DEVICE_TYPE_OFFSET 10
 
 #define WATER_TEMP_ERROR       0x01
 #define AIR_TEMP_ERROR       0x02
@@ -81,6 +85,7 @@ typedef enum
 	FAN_SPEED_AUTO = 0x04,
  } FAN_SPEED_t;
 
+#ifdef SLAVE_MODE
  void rvvTIMERExpiredISR();
 #endif
 

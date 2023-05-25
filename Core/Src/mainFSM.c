@@ -14,7 +14,9 @@
 
 static EventGroupHandle_t xSystemEventGroupHandle;
 static uint8_t mode_restart = 0;
+#ifdef SLAVE_MODE
 static void vSlaveControlFSM();
+#endif
 static void vMasterControlFSM();
 static void vSetState( FAN_SPEED_t speed ,VALVE_STATE_t state );
 extern TIM_HandleTypeDef htim4;
@@ -87,8 +89,6 @@ void vSetRegInput(REGS_t reg_addr, uint16_t data)
 
 }
 
-
-
 void vSetReg(REGS_t reg_addr, uint16_t data)
 {
 
@@ -118,7 +118,7 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 	 eMBEnable(  );
 #endif
 #ifdef MASTER_MODE
-	 eMBMasterInit(MB_RTU,0x01,0,115200,MB_PAR_ODD );
+	 eMBMasterInit(MB_RTU,0,115200,MB_PAR_ODD );
 	 eMBMasterEnable();
 #endif
 	 xEventGroupSetBits(xSystemEventGroupHandle,  MB_READY );
@@ -129,7 +129,7 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 		 eMBPoll();
 #endif
 #ifdef MASTER_MODE
-		 eMBMasterPoll(  );
+	eMBMasterPoll(  );
 #endif
 	 }
 
@@ -143,7 +143,7 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
  MODE_t mode = OFF_MODE;
  uint8_t door_state = 0;
 
-
+#ifdef SLAVE_MODE
 uint16_t PWM_STATE = 0;
 static void vSetPWM( uint16_t pwm)
 {
@@ -162,19 +162,26 @@ static void vSetPWM( uint16_t pwm)
 		}
 	}
 }
+#endif
 
 static uint16_t timeout = 0;
 static uint16_t timer = 0;
+
+
  static void DOUT_PROCESS()
  {
 	 uint8_t K2,K3,K1;
+#ifdef SLAVE_MODE
 	 vSetPWM(usGetReg(PWM));
+#endif
      if ((usGetRegInput(ERROR_STATUS) &  WATER_TEMP_ERROR ) || ( (usGetRegInput(ERROR_STATUS) & AIR_TEMP_ERROR) && (usGetRegInput(TYPE)==HW)))
      {
     	 timeout= 50;
      }
      else
+     {
     	timeout =0;
+     }
      if (timeout)
      {
        timer++;
@@ -185,7 +192,10 @@ static uint16_t timer = 0;
        }
      }
      else
+     {
     	 HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin,GPIO_PIN_RESET);
+     }
+#ifdef SLAVE_MODE
 	 if (usGetRegInput(TYPE) == NONE)
 	 {
 		 vUPDATECoils(1);
@@ -222,6 +232,7 @@ static uint16_t timer = 0;
 	     vSetOutState( OUT_3, K3 );
 	     vSetOutState( OUT_4, usGetRegInput(WATER_VALVE) );
 	 }
+#endif
  }
 
 #define HW_DOOR_MASK 0x1
@@ -244,17 +255,6 @@ static uint16_t timer = 0;
 
  }
 
-
-void vMasterTask()
-{
-	//Инициализация типа системы
-		MAIN_FSM_STATE_t InitFSM = STANDBAY_STATE;
-		while(1)
-		{
-
-		}
-
-}
 
 void vDATATask(void *argument)
 
@@ -281,6 +281,7 @@ void vDATATask(void *argument)
 		 		 break;
 		 	 case WORK_STATE:
 		 		INPUT_PROCESS();
+#ifdef SLAVE_MODE
 		 		if (mode_restart == 1)
 		 		{
 		 			if (usGetRegInput(TYPE)==NONE)
@@ -304,6 +305,9 @@ void vDATATask(void *argument)
 		 			mode_restart = 0;
 		 		}
 		 		vSlaveControlFSM();
+#endif
+		 		vTaskDelay(70);
+		 		vMasterControlFSM();
 		 		DOUT_PROCESS();
 		 		break;
 
@@ -367,7 +371,7 @@ static void vSetState( FAN_SPEED_t speed ,VALVE_STATE_t state )
 	}
 	vSetRegInput(FAN_SPEED, current_fan_speed );
 }
-
+#ifdef SLAVE_MODE
 static void vSlaveControlFSM()
  {
 		switch(control_state )
@@ -524,8 +528,25 @@ static void vSlaveControlFSM()
 					 break;
 			}
  }
+#endif
+#ifdef MASTER_MODE
 void vMasterControlFSM()
 {
+	uint16_t data[4];
+	data[0]=usGetReg(MODE) ;
+	data[1]=usGetReg(FAN_SPEED_CONFIG);
+	data[2]=usGetReg(WORK_TEMP);
+	data[3]=usGetReg(AIR_TEMP);
+
 	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
-	//errorCode = eMBMasterReqWriteHoldingRegister(0,3,usModbusUserData[0],RT_WAITING_FOREVER);
+	//errorCode = eMBMasterReqWriteHoldingRegister(0,17,usGetReg(AIR_TEMP),0);
+	//vTaskDelay(40);
+	//errorCode = eMBMasterReqWriteHoldingRegister(0,16,usGetReg(WORK_TEMP),0);
+	//vTaskDelay(40);
+	//errorCode = eMBMasterReqWriteHoldingRegister(0,14,usGetReg(MODE),0);
+	//vTaskDelay(40);
+	///errorCode = eMBMasterReqWriteHoldingRegister(0,15,usGetReg(FAN_SPEED_CONFIG),0);
+	vTaskDelay(40);
+	errorCode = eMBMasterReqWriteMultipleHoldingRegister(0,14,4,&data[0],0);
 }
+#endif

@@ -28,6 +28,19 @@ const uint16_t CalPoint[20][2] = {{0,32742},
 								 {45,4355},
 							     {50,3593}
 };
+#define K10	10000
+const uint16_t B57164CalPoint[11][2] = {{0,K10*3.3208},
+								 {5,K10*2.5842},
+								 {10,K10*2.0238},
+								 {15,K10*1.5858},
+								 {20,K10*1.2507},
+								 {25,K10},
+								 {30,K10*0.7964},
+								 {35,K10*0.64053},
+								 {40,K10*0.51772},
+								 {45,K10*0.41958},
+							     {50,K10*0.34172}
+};
 
 const uint16_t Resistanse[][2] = {{0,32742},
 								 {1,31113},
@@ -90,17 +103,28 @@ const  PIN_CONFIG xDinPortConfig[DIN_CHANNEL]= {{SW1_Pin,SW1_GPIO_Port},
 												{SW6_Pin,SW6_GPIO_Port},
 												{SW7_Pin,SW7_GPIO_Port},
 												{SW8_Pin,SW8_GPIO_Port},
+#ifdef MASTER_MODE
+												{S1_Pin,S1_GPIO_Port},
+												{S2_Pin,S2_GPIO_Port},
+												{S3_Pin,S3_GPIO_Port},
+												{S4_Pin,S4_GPIO_Port},
+#endif
+#ifdef SLAVE_MODE
 												{DOOR_Pin,DOOR_GPIO_Port}
+#endif
 };
+#ifdef SLAVE_DATA
 const PIN_CONFIG xDoutPortConfig[DOUT_CHANNEL] = {{K2_Pin,K2_GPIO_Port},
 												  {K4_Pin,K4_GPIO_Port},
 												  {K6_Pin,K6_GPIO_Port},
 												  {K8_Pin,K8_GPIO_Port}};
-
+#endif
 static uint16_t ADC_RAW[ADC1_CHANNELS ];
 static uint16_t ADC_OLD_RAW[ADC1_CHANNELS ];
 static uint16_t ADC1_DMABuffer[ADC1_CHANNELS *ADC_FRAME_SIZE ];
+#ifdef SLAVE_MODE
 static DoutConfig_t xDoutConfig[ DOUT_CHANNEL];
+#endif
 static DinConfig_t xDinConfig[ DIN_CHANNEL];
 static EventGroupHandle_t xSystemEventGroupHandle;
 static uint8_t DataReadyFlag = 0;
@@ -110,6 +134,7 @@ extern ADC_HandleTypeDef hadc1;
 /*
  *
  */
+#ifdef SLAVE_MODE
 void eOutConfig( uint8_t channel, DOUT_OUT_TYPE type)
 {
 	if ( channel < DOUT_CHANNEL)
@@ -117,6 +142,7 @@ void eOutConfig( uint8_t channel, DOUT_OUT_TYPE type)
 		xDoutConfig[channel].eOutConfig = type;
 	}
 }
+#endif
 /*
  *
  */
@@ -158,6 +184,11 @@ static void vDINInit()
 	eDinConfig( INPUT_7, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
 	eDinConfig( INPUT_8, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
 	eDinConfig( INPUT_9, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
+#ifdef MASTER_MODE
+	eDinConfig( INPUT_10, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
+	eDinConfig( INPUT_11, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
+	eDinConfig( INPUT_12, DIN_CONFIG_NEGATIVE , DEF_H_FRONT, DEF_L_FRONT );
+#endif
 #ifdef SLAVE_MODE
 
 	eAinCalDataConfig(AIN_2,20);
@@ -183,6 +214,26 @@ static void vDINInit()
 	eOutConfig( OUT_3, OUT_CONFIG_POSITIVE);
 	eOutConfig( OUT_4, OUT_CONFIG_POSITIVE);
 #endif
+#ifdef MASTER_MODE
+	eAinCalDataConfig(AIN_2,11);
+		for (int i = 0;i<11;i++)
+		{
+			d[0].X = B57164CalPoint[i][1];
+			d[0].Y = B57164CalPoint[i][0];
+			d[1].X = B57164CalPoint[i+1][1];
+			d[1].Y = B57164CalPoint[i+1][0];
+			eSetAinCalPoint(AIN_2,&d[0],i);
+		}
+		eAinCalDataConfig(AIN_3,20);
+		for (int i = 0;i<19;i++)
+		{
+			d[0].X = CalPoint[i][1];
+			d[0].Y = CalPoint[i][0];
+			d[1].X = CalPoint[i+1][1];
+			d[1].Y = CalPoint[i+1][0];
+			eSetAinCalPoint(AIN_3,&d[0],i);
+		}
+#endif
 	for (uint8_t i=0; i<ADC1_CHANNELS;i++)
 	{
 		 ADC_OLD_RAW[i] = 0x00;
@@ -200,6 +251,7 @@ void vADCReady()
  void vDTask(void *argument)
  {
 volatile float temp1;
+volatile uint16_t ddata;
 	  uint16_t temp = 0;
 	  uint8_t init_timer = 0;
 	  xSystemEventGroupHandle =  xGetSystemControlEvent();
@@ -248,6 +300,39 @@ volatile float temp1;
 			xEventGroupWaitBits(xSystemEventGroupHandle,  AIN_READY,  pdFALSE, pdTRUE, portMAX_DELAY );
 			HAL_ADC_Stop_DMA(&hadc1);
 			vGetAverDataFromRAW(&ADC1_DMABuffer[0],&ADC_RAW[0],0,0,3,3);
+#ifdef MASTER_MODE
+			vSetReg(WORK_TEMP , ADC_RAW[0]/136 +5);
+			vSetReg(MODE,(uiGetDinMask() & DEVICE_TYPE_MASK)>>DEVICE_TYPE_OFFSET);
+			vSetReg(FAN_SPEED_CONFIG,(uiGetDinMask() & DEVICE_FAN_MASK)>>DEVICE_FAN_OFFSET);
+			temp1 = vAinGetData(AIN_3);
+			if (temp1>35000)
+			{
+				temp1 = vAinGetData(AIN_2);
+				if (temp1 < 35000)
+				{
+					vSetReg(AIR_TEMP, (uint16_t)fGetAinCalData(AIN_2,temp1));
+				}
+
+			}
+			else
+			{
+					vSetReg(AIR_TEMP, (uint16_t)fGetAinCalData(AIN_3,temp1));
+					//vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) & ~WATER_TEMP_ERROR);
+			}
+						//temp1 = vAinGetData(AIN_3);
+						//if (temp1>35000)
+						//{
+						//	vSetRegInput(IN_AIR_TEMP, -1);
+						//	vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) | AIR_TEMP_ERROR);
+						//}
+						//else
+						//{
+						//	vSetRegInput(IN_AIR_TEMP,(uint16_t)fGetAinCalData(AIN_3,temp1));
+						//	vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) & ~AIR_TEMP_ERROR);
+						//}
+#endif
+
+#ifdef SLAVE_MODE
 			temp1 = vAinGetData(AIN_2);
 			if (temp1>35000)
 			{
@@ -273,8 +358,11 @@ volatile float temp1;
 
 		//	vSetRegInput(WATER_TEMP  , iGetTemp(1));
 		//	vSetRegInput(IN_AIR_TEMP , iGetTemp(2));
+#endif
 			vSetRegInput(TYPE, (uiGetDinMask() & DEVICE_MODE_MASK)>>DEVICE_MODE_OFFSET );
+#ifdef SLAVE_MODE
 			vSetRegInput(DOOR_STATE, (uiGetDinMask() & DEVICE_DOOR_MASK)>>DEVICE_DOOR_OFFSET );
+#endif
 	  }
  }
 
@@ -353,7 +441,7 @@ uint16_t vAinGetData(AIN_INPUT_NAME channel)
   */
  uint32_t uiGetDinMask()
  {
- 	uint32_t uiMask = 0;
+ 	volatile uint32_t uiMask = 0;
  	for (int8_t i = (DIN_CHANNEL -1);  i > -1 ; i--)
  	{
  		uiMask <<=1;
@@ -361,6 +449,7 @@ uint16_t vAinGetData(AIN_INPUT_NAME channel)
  	}
  	return ( uiMask );
  }
+#ifdef SLAVE_MODE
  /*
   *
   */
@@ -372,5 +461,5 @@ uint16_t vAinGetData(AIN_INPUT_NAME channel)
  {
 	 return xDoutConfig[channel].state;
  }
-
+#endif
 
