@@ -113,7 +113,7 @@ const  PIN_CONFIG xDinPortConfig[DIN_CHANNEL]= {{SW1_Pin,SW1_GPIO_Port},
 												{DOOR_Pin,DOOR_GPIO_Port}
 #endif
 };
-#ifdef SLAVE_DATA
+#ifdef SLAVE_MODE
 const PIN_CONFIG xDoutPortConfig[DOUT_CHANNEL] = {{K2_Pin,K2_GPIO_Port},
 												  {K4_Pin,K4_GPIO_Port},
 												  {K6_Pin,K6_GPIO_Port},
@@ -242,15 +242,15 @@ static void vDINInit()
 void vADCReady()
 {
 	 static portBASE_TYPE xHigherPriorityTaskWoken;
-	  xHigherPriorityTaskWoken = pdFALSE;
-	   xEventGroupSetBitsFromISR(xSystemEventGroupHandle, AIN_READY, &xHigherPriorityTaskWoken );
-	   portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
-	   return;
+	 xHigherPriorityTaskWoken = pdFALSE;
+	 xEventGroupSetBitsFromISR(xSystemEventGroupHandle, AIN_READY, &xHigherPriorityTaskWoken );
+	 portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
+	 return;
 }
 
  void vDTask(void *argument)
  {
-volatile float temp1;
+//volatile float temp1;
 volatile uint16_t ddata;
 	  uint16_t temp = 0;
 	  uint8_t init_timer = 0;
@@ -269,7 +269,6 @@ volatile uint16_t ddata;
 				   DataReadyFlag = 1;
 				   xEventGroupSetBits(xSystemEventGroupHandle, DIN_READY );
 			   }
-
 			}
 #ifdef SLAVE_MODE
 			for (uint8_t i= 0U; i < DOUT_CHANNEL; i++)
@@ -301,6 +300,9 @@ volatile uint16_t ddata;
 			HAL_ADC_Stop_DMA(&hadc1);
 			vGetAverDataFromRAW(&ADC1_DMABuffer[0],&ADC_RAW[0],0,0,3,3);
 #ifdef MASTER_MODE
+			vSetReg(DEVICE_TYPE,  (uiGetDinMask() & DEVICE_MODE_MASK)>>DEVICE_MODE_OFFSET );
+			vSetReg(DEVICE_COUNT, (uiGetDinMask() & DEVICE_ADDR_MASK)>>DEVICE_ADDR_OFFSET);
+			vSetReg(CONTROL_MODE, (uiGetDinMask() & DEVICE_MASTER_CONTROL_MASK)>>DEVICE_MASTER_CONTROL_OFFSET);
 			vSetReg(WORK_TEMP , ADC_RAW[0]/136 +5);
 			vSetReg(MODE,(uiGetDinMask() & DEVICE_TYPE_MASK)>>DEVICE_TYPE_OFFSET);
 			vSetReg(FAN_SPEED_CONFIG,(uiGetDinMask() & DEVICE_FAN_MASK)>>DEVICE_FAN_OFFSET);
@@ -333,35 +335,34 @@ volatile uint16_t ddata;
 #endif
 
 #ifdef SLAVE_MODE
-			temp1 = vAinGetData(AIN_2);
-			if (temp1>35000)
+			temp = vAinGetData(AIN_2);
+			if ((temp>=35000) || (temp <3500))
 			{
 				vSetRegInput(WATER_TEMP,-1);
 				vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) | WATER_TEMP_ERROR);
 			}
 			else
 			{
-				vSetRegInput(WATER_TEMP, (uint16_t)fGetAinCalData(AIN_2,temp1));
+				vSetRegInput(WATER_TEMP, (uint16_t)fGetAinCalData(AIN_2,temp));
 				vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) & ~WATER_TEMP_ERROR);
 			}
-			temp1 = vAinGetData(AIN_3);
-			if (temp1>35000)
+			temp = vAinGetData(AIN_3);
+			if ((temp>=35000) || (temp <3500))
 			{
 				vSetRegInput(IN_AIR_TEMP, -1);
 				vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) | AIR_TEMP_ERROR);
 			}
 			else
 			{
-				vSetRegInput(IN_AIR_TEMP,(uint16_t)fGetAinCalData(AIN_3,temp1));
+				vSetRegInput(IN_AIR_TEMP,(uint16_t)fGetAinCalData(AIN_3,temp));
 				vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) & ~AIR_TEMP_ERROR);
 			}
 
 		//	vSetRegInput(WATER_TEMP  , iGetTemp(1));
 		//	vSetRegInput(IN_AIR_TEMP , iGetTemp(2));
-#endif
+
 			vSetRegInput(TYPE, (uiGetDinMask() & DEVICE_MODE_MASK)>>DEVICE_MODE_OFFSET );
-#ifdef SLAVE_MODE
-			vSetRegInput(DOOR_STATE, (uiGetDinMask() & DEVICE_DOOR_MASK)>>DEVICE_DOOR_OFFSET );
+			vUPDATEDin((uiGetDinMask() & DEVICE_DOOR_MASK)>>DEVICE_DOOR_OFFSET  );
 #endif
 	  }
  }
@@ -403,7 +404,10 @@ uint16_t vAinGetData(AIN_INPUT_NAME channel)
  {
 	 float temp;
 	 ADC_RAW[channel] = vRCFilter(ADC_RAW[channel], &ADC_OLD_RAW[channel]);
-	 temp =  ADC_RAW[channel]*RA/(4095- ADC_RAW[channel]);
+	 temp =  (float)(ADC_RAW[channel]*RA)/(4095- ADC_RAW[channel]);
+	 if (temp > 35000)
+		 return 35000;
+	 else
 	 return (uint16_t)temp;
  }
 

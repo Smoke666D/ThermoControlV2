@@ -15,8 +15,8 @@
 
 
 
-#define MASTER_MODE
-//#define SLAVE_MODE
+//#define MASTER_MODE
+#define SLAVE_MODE
 
  void vMainFSM(void *argument);
 
@@ -36,9 +36,11 @@
 #define DEVICE_ADDR_MASK  0x000F
 #define DEVICE_ADDR_OFFSET 0x000
 #define DEVICE_MODE_MASK  0x0030
-#define DEVICE_MODE_OFFSET 0x04
-#define DEVICE_DOOR_MASK  0x010
-#define DEVICE_DOOR_OFFSET 8
+#define DEVICE_MODE_OFFSET 4
+#define DEVICE_MASTER_CONTROL_MASK 0x80
+#define DEVICE_MASTER_CONTROL_OFFSET 7
+#define DEVICE_DOOR_MASK  0x80
+#define DEVICE_DOOR_OFFSET 7
 #define DEVICE_FAN_MASK  0x0300
 #define DEVICE_FAN_OFFSET 8
 #define DEVICE_TYPE_MASK   0xC00
@@ -54,7 +56,7 @@
 #define  DEVICE_COIL_START     (DEVICE_DINPUT_START + DEVICE_DINPUT)
 #define  DEVICE_COIL		   4
 #define  DEVICE_INPUT_START    ( DEVICE_COIL_START + DEVICE_COIL)
-#define  DEVICE_INPUT		   9
+#define  DEVICE_INPUT		   8
 #define  DEVICE_HOLDING_START  (DEVICE_INPUT_START + DEVICE_INPUT)
 #define  DEVICE_HOLDING        30
 #define  DEVICE_HOLDING_FLASG  5
@@ -94,7 +96,17 @@ typedef enum
 
 #define STANDBY_WATER_ON_TEMP  20
 #define STANDBY_WATER_OFF_TEMP 30
-
+#define PREHEAT_OFF_TEMP       20
+#define PREHEAT_OFF_TIME       60
+#define WATER_FREEZE_TEMP      13
+#define VALVE_OFF_TEMP_DELTA 	2
+#define VALVE_ON_TEMP_DELTA     2
+#define DOOR_CLOSE_TIME        180
+#define SPEED_SWITCH_AW_TEMP_DELTA 2
+#define  FAN_OFF_HW_TEMP_DELTA 2
+#define SPEED_3_HW_SWITCH_TEMP_DELTA 6
+#define  SPEED_2_HW_SWITCH_TEMP_DELTA 4
+#define  SPEED_1_HW_SWITCH_TEMP_DELTA 2
  typedef enum
  {
    TYPE = 0,
@@ -103,26 +115,19 @@ typedef enum
    FSM_STATUS = 3,
    WATER_VALVE = 4,
    FAN_SPEED = 5,
-   DOOR_STATE =6,
-   DOOR_STATE_TRIGGER = 7,
-   ERROR_STATUS = 8,
+   DOOR_STATE_TRIGGER = 6,
+   ERROR_STATUS = 7,
    MODE = 0,
    FAN_SPEED_CONFIG = 1,
    WORK_TEMP = 2,
    AIR_TEMP = 3,
-   PWM = 4,
-   SPEED_3_HW_SWITCH_TEMP = 5,
-   SPEED_2_HW_SWITCH_TEMP = 6,
-   SPEED_1_HW_SWITCH_TEMP = 7,
-   FAN_OFF_HW_TEMP		 = 8,
-   VALVE_ON_TEMP = 9,
-   SPEED_SWITCH_AW_TEMP = 10,
-   WATER_ON_TEMP = 11,
-   VALVE_OFF_TEMP = 12,
-   PREHEAT_OFF_TIME = 13,
-   WATER_FREEZE_TEMP = 14,
-   FAN_OFF_AW_TEMP = 15,
-   DOOR_CLOSE_TIME = 18,
+#ifdef MASTER_MODE
+   CONTROL_MODE = 4,
+   DEVICE_COUNT = 5,
+   DEVICE_TYPE = 6,
+   ERROR_MASTER_STATUS = 7,
+#endif
+   PWM = 4
  } REGS_t;
 #define REG_COUNT  10
  typedef enum
@@ -161,10 +166,12 @@ typedef enum
 	STANDBY = 2,
 	WORK = 3,
 	TELEMETRY = 4,
+	ERROR_STATE = 5,
 
 } control_flsm_t;
 
 void vUPDATECoils( uint8_t rw);
+void vUPDATEDin(uint8_t state );
 void vTimer1sInc();
 void vDATATask(void *argument);
 EventGroupHandle_t xGetSystemControlEvent();

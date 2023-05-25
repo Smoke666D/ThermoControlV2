@@ -52,18 +52,13 @@ uint8_t connection;
 uint16_t usGetReg( REGS_t reg_addr)
 {
 	uint16_t usRes;
-	if (reg_addr>= DEVICE_HOLDING_FLASG)
-	{
-		usRes = vFDGetRegState( reg_addr - DEVICE_HOLDING_FLASG );
-	}
-	else
-	{
-		if (reg_addr == MODE)
-		{
+
+     if (reg_addr == MODE)
+	 {
 			connection = 1;
 		}
 		usRes = system_regs[reg_addr];
-	}
+
 	return  (usRes);
 }
 /*
@@ -92,18 +87,13 @@ void vSetRegInput(REGS_t reg_addr, uint16_t data)
 void vSetReg(REGS_t reg_addr, uint16_t data)
 {
 
-		  if (reg_addr>=  DEVICE_HOLDING_FLASG)
-		  {
-			  vFDSetRegState( reg_addr - DEVICE_HOLDING_FLASG,data);
-		  }
-		  else
-		  {
+
 			  if (reg_addr == MODE)
 			  {
 				  mode_restart = 1;
 			  }
 			  system_regs[reg_addr] = data;
-		  }
+
 }
 
 
@@ -111,9 +101,9 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
  {
 	 uint16_t addres = 0;
 	 waitFlag( DIN_READY );
-	 addres = (uiGetDinMask() & DEVICE_ADDR_MASK)>>DEVICE_ADDR_OFFSET;
-#ifdef SLAVE_MODE
 
+#ifdef SLAVE_MODE
+	 addres = (uiGetDinMask() & DEVICE_ADDR_MASK)>>DEVICE_ADDR_OFFSET;
 	 eMBInit(MB_RTU,addres,0,115200,MB_PAR_ODD );
 	 eMBEnable(  );
 #endif
@@ -241,7 +231,7 @@ static uint16_t timer = 0;
  static void INPUT_PROCESS()
  {
 
-	 if (usGetRegInput(DOOR_STATE) == OPEN)
+	 if ((uiGetDinMask() & DEVICE_DOOR_MASK)>>DEVICE_DOOR_OFFSET)
 	 {
 		if (usGetRegInput(DOOR_STATE_TRIGGER)  == OPEN )
 		{
@@ -261,7 +251,7 @@ void vDATATask(void *argument)
  {
    //Инициализация типа системы
 	MAIN_FSM_STATE_t InitFSM = STANDBAY_STATE;
-
+    uint16_t error;
 	 while(1)
 	 {
 		 setHWInitFlag( PROCESS_DATA);
@@ -270,20 +260,17 @@ void vDATATask(void *argument)
 		 switch (InitFSM)
 		 {
 		 	 case STANDBAY_STATE:
-		 		vFDInit();
-		 		for (int i = 0;i<DEVICE_HOLDING_FLASG;i++)
-		 		{
-		 			 vSetReg(i,0);
-		 		}
 		 		 //Дожидаемся пока отработают все остальные процессы
 		 		 waitFlag( DIN_READY | AIN_READY | MB_READY);
 		 		 InitFSM = WORK_STATE;
+		 		 mode_restart = 1;
 		 		 break;
 		 	 case WORK_STATE:
 		 		INPUT_PROCESS();
 #ifdef SLAVE_MODE
 		 		if (mode_restart == 1)
 		 		{
+		 			vSetRegInput(DOOR_STATE_TRIGGER,CLOSED);
 		 			if (usGetRegInput(TYPE)==NONE)
 		 			{
 		 				control_state = TELEMETRY;
@@ -304,13 +291,23 @@ void vDATATask(void *argument)
 		 			}
 		 			mode_restart = 0;
 		 		}
-		 		vSlaveControlFSM();
+		 		error = usGetRegInput(ERROR_STATUS);
+		 		if (((usGetRegInput(TYPE) != NONE) && (error & WATER_TEMP_ERROR ))
+		 			|| ((usGetRegInput(TYPE) == HW) && (error & AIR_TEMP_ERROR )))
+		 		{
+		 			vSetState(FAN_SPEED_OFF, VALVE_ON);
+		 		}
+		 		else
+		 		{
+		 			vSlaveControlFSM();
+		 		}
 #endif
+#ifdef MASTER_MODE
 		 		vTaskDelay(70);
 		 		vMasterControlFSM();
+#endif
 		 		DOUT_PROCESS();
 		 		break;
-
 		 }
 		 resetHWInitFlag( PROCESS_DATA);
 	 }
@@ -391,7 +388,7 @@ static void vSlaveControlFSM()
 				break;
 			case PREHEAT:
 					 vSetState(FAN_SPEED_OFF, VALVE_ON);
-					 if (GetTimer(usGetReg(PREHEAT_OFF_TIME)) &&  (usGetRegInput(WATER_TEMP) >= usGetReg(WATER_ON_TEMP)) )
+					 if (GetTimer(PREHEAT_OFF_TIME) &&  (usGetRegInput(WATER_TEMP) >= PREHEAT_OFF_TEMP ) )
 					 {
 						 ResetTimer();
 						 control_state =  WORK;
@@ -399,7 +396,7 @@ static void vSlaveControlFSM()
 					 break;
 				 case WORK:
 					    //Режим разморозки
-					    if (usGetRegInput(WATER_TEMP) <= usGetReg(WATER_FREEZE_TEMP))
+					    if (usGetRegInput(WATER_TEMP) < WATER_FREEZE_TEMP)
 					 	{
 					    	vSetRegInput(DOOR_STATE_TRIGGER,CLOSED);
 					 		control_state = PREHEAT;
@@ -413,7 +410,7 @@ static void vSlaveControlFSM()
 					    		 vSetRegInput(DOOR_STATE_TRIGGER,OPEN);
 					    		 ResetTimer();
 					    	}
-					    	if (usGetRegInput(DOOR_STATE) == CLOSED)
+					    	if (((uiGetDinMask() & DEVICE_DOOR_MASK)>>DEVICE_DOOR_OFFSET ) == 0)
 							 {
 								if (GetTimer(DOOR_CLOSE_TIME))
 								{
@@ -430,27 +427,27 @@ static void vSlaveControlFSM()
 					    if ((usGetRegInput(TYPE) == HW) && ( usGetReg(MODE) == DEV_AUTO))
 					    {
 
-					    	if ( usGetRegInput(IN_AIR_TEMP)  < ( usGetReg(WORK_TEMP) - usGetReg(SPEED_3_HW_SWITCH_TEMP)  ) )
+					    	if ( usGetRegInput(IN_AIR_TEMP)  < ( usGetReg(WORK_TEMP) - SPEED_3_HW_SWITCH_TEMP_DELTA  ) )
 					    	{
 					    		vSetState(FAN_SPEED_MAX, VALVE_ON);
 					    		break;
 					    	}
-					    	if ( usGetRegInput(IN_AIR_TEMP) < ( usGetReg(WORK_TEMP) - usGetReg(SPEED_2_HW_SWITCH_TEMP)))
+					    	if ( usGetRegInput(IN_AIR_TEMP) < ( usGetReg(WORK_TEMP) - SPEED_2_HW_SWITCH_TEMP_DELTA))
 					    	{
 					    		vSetState(FAN_SPEED_AUTO,  VALVE_AUTO);
 					    		break;
 					    	}
-					    	if ( usGetRegInput(IN_AIR_TEMP) == ( usGetReg(WORK_TEMP) - usGetReg(SPEED_2_HW_SWITCH_TEMP)))
+					    	if ( usGetRegInput(IN_AIR_TEMP) == ( usGetReg(WORK_TEMP) - SPEED_2_HW_SWITCH_TEMP_DELTA))
 					    	{
 					    		vSetState(FAN_SPEED_MID, VALVE_AUTO);
 					    	    break;
 					    	}
-					    	if (usGetRegInput(IN_AIR_TEMP) < ( usGetReg(WORK_TEMP) - usGetReg(SPEED_1_HW_SWITCH_TEMP)))
+					    	if (usGetRegInput(IN_AIR_TEMP) < ( usGetReg(WORK_TEMP) - SPEED_1_HW_SWITCH_TEMP_DELTA))
 					    	{
 					    		vSetState(FAN_SPEED_AUTO,VALVE_AUTO);
 					    		break;
 					    	}
-					    	if (usGetRegInput(IN_AIR_TEMP) == ( usGetReg(WORK_TEMP) - usGetReg(SPEED_1_HW_SWITCH_TEMP)))
+					    	if (usGetRegInput(IN_AIR_TEMP) == ( usGetReg(WORK_TEMP) - SPEED_1_HW_SWITCH_TEMP_DELTA))
 					    	{
 					    		vSetState(FAN_SPEED_MIN ,VALVE_AUTO);
 					    		break;
@@ -465,12 +462,12 @@ static void vSlaveControlFSM()
 					    		vSetState(FAN_SPEED_AUTO ,VALVE_OFF);
 					    		break;
 					    	}
-					    	if (usGetRegInput(IN_AIR_TEMP)  < ( usGetReg(WORK_TEMP) + usGetReg(FAN_OFF_HW_TEMP)))
+					    	if (usGetRegInput(IN_AIR_TEMP)  < ( usGetReg(WORK_TEMP) + FAN_OFF_HW_TEMP_DELTA))
 					    	{
 					    		vSetState(FAN_SPEED_AUTO ,VALVE_OFF);
 					    		break;
 					    	}
-					    	if (usGetRegInput(IN_AIR_TEMP) >= ( usGetReg(WORK_TEMP) + usGetReg(FAN_OFF_HW_TEMP)))
+					    	if (usGetRegInput(IN_AIR_TEMP) >= ( usGetReg(WORK_TEMP) + FAN_OFF_HW_TEMP_DELTA))
 					    	{
 					    		vSetState(FAN_SPEED_OFF,VALVE_OFF);
 					    		break;
@@ -478,12 +475,12 @@ static void vSlaveControlFSM()
 					    }
 					    if  ( usGetReg(MODE) == DEV_MANUAL)
 					    {
-					    	if (usGetReg(AIR_TEMP) > ( usGetReg(WORK_TEMP) + usGetReg(VALVE_OFF_TEMP)))
+					    	if (usGetReg(AIR_TEMP) > ( usGetReg(WORK_TEMP) + VALVE_OFF_TEMP_DELTA))
 					    	{
 					    		vSetState(usGetReg(FAN_SPEED_CONFIG), VALVE_OFF);
 					    		break;
 					    	}
-					    	if (usGetReg(AIR_TEMP) < (usGetReg(WORK_TEMP) - usGetReg(VALVE_ON_TEMP) ))
+					    	if (usGetReg(AIR_TEMP) < (usGetReg(WORK_TEMP) - VALVE_ON_TEMP_DELTA ))
 					    	{
 					    		vSetState(usGetReg(FAN_SPEED_CONFIG), VALVE_ON);
 					    		break;
@@ -492,12 +489,12 @@ static void vSlaveControlFSM()
 					    }
 					    if ((usGetRegInput(TYPE) == AW) && ( usGetReg(MODE) == DEV_AUTO))
 					    {
-					    	if (usGetReg(AIR_TEMP) < (usGetReg(WORK_TEMP) - usGetReg(VALVE_ON_TEMP) ))
+					    	if (usGetReg(AIR_TEMP) < (usGetReg(WORK_TEMP) - VALVE_ON_TEMP_DELTA ))
 					    	{
 					    		vSetState(FAN_SPEED_MID, VALVE_ON);
 					    		break;
 					    	}
-					    	if (usGetReg(AIR_TEMP) == ( usGetReg(WORK_TEMP) - usGetReg(VALVE_ON_TEMP)))
+					    	if (usGetReg(AIR_TEMP) == ( usGetReg(WORK_TEMP) - VALVE_ON_TEMP_DELTA))
 					    	{
 					    		vSetState( FAN_SPEED_MIN, VALVE_AUTO);
 					    		break;
@@ -512,12 +509,12 @@ static void vSlaveControlFSM()
 					    		vSetState( FAN_SPEED_AUTO ,VALVE_OFF );
 					    		break;
 					    	}
-					    	if (usGetReg(AIR_TEMP) < (usGetReg(WORK_TEMP) + usGetReg(SPEED_SWITCH_AW_TEMP )))
+					    	if (usGetReg(AIR_TEMP) < (usGetReg(WORK_TEMP) + SPEED_SWITCH_AW_TEMP_DELTA))
 					    	{
 					    		vSetState( FAN_SPEED_AUTO ,VALVE_OFF );
 					    		break;
 					        }
-					    	if (usGetReg(AIR_TEMP) >= (usGetReg(WORK_TEMP) + usGetReg(SPEED_SWITCH_AW_TEMP )))
+					    	if (usGetReg(AIR_TEMP) >= (usGetReg(WORK_TEMP) + SPEED_SWITCH_AW_TEMP_DELTA))
 					    	{
 					    		vSetState(FAN_SPEED_OFF,VALVE_OFF );
 					    		break;
@@ -530,6 +527,7 @@ static void vSlaveControlFSM()
  }
 #endif
 #ifdef MASTER_MODE
+uint8_t mster_control_addres =0;
 void vMasterControlFSM()
 {
 	uint16_t data[4];
@@ -548,5 +546,14 @@ void vMasterControlFSM()
 	///errorCode = eMBMasterReqWriteHoldingRegister(0,15,usGetReg(FAN_SPEED_CONFIG),0);
 	vTaskDelay(40);
 	errorCode = eMBMasterReqWriteMultipleHoldingRegister(0,14,4,&data[0],0);
+	if (usGetReg( CONTROL_MODE) )
+	{
+		mster_control_addres++;
+		if (mster_control_addres >usGetReg( DEVICE_COUNT))
+		{
+			mster_control_addres = 1;
+		}
+
+	}
 }
 #endif
