@@ -41,11 +41,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  18 .debug_line   0002a876  00000000  00000000  00090b5c  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .debug_str    0009cd7a  00000000  00000000  000bb3d2  2**0
+ 19 .debug_str    0009cd7b  00000000  00000000  000bb3d2  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 20 .comment      00000050  00000000  00000000  0015814c  2**0
+ 20 .comment      00000050  00000000  00000000  0015814d  2**0
                   CONTENTS, READONLY
- 21 .debug_frame  00004904  00000000  00000000  0015819c  2**2
+ 21 .debug_frame  00004904  00000000  00000000  001581a0  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -2130,7 +2130,7 @@ uint16_t vAinGetData(AIN_INPUT_NAME channel)
  8001536:	f000 fb6f 	bl	8001c18 <vSetRegInput>
 			vUPDATEDin((uiGetDinMask() & DEVICE_DOOR_MASK)>>DEVICE_DOOR_OFFSET  );
  800153a:	f7ff fedb 	bl	80012f4 <uiGetDinMask>
- 800153e:	f3c0 10c0 	ubfx	r0, r0, #7, #1
+ 800153e:	f3c0 2000 	ubfx	r0, r0, #8, #1
  8001542:	f003 fef5 	bl	8005330 <vUPDATEDin>
 		    HAL_ADC_Start_DMA(&hadc1,&ADC1_DMABuffer[0], 9);
  8001546:	2209      	movs	r2, #9
@@ -3255,7 +3255,7 @@ static void vSetState( FAN_SPEED_t speed ,VALVE_STATE_t state )
  8001d2c:	d0ef      	beq.n	8001d0e <vDATATask+0x12>
 	 if ((uiGetDinMask() & DEVICE_DOOR_MASK)>>DEVICE_DOOR_OFFSET)
  8001d2e:	f7ff fae1 	bl	80012f4 <uiGetDinMask>
- 8001d32:	f010 0f80 	tst.w	r0, #128	; 0x80
+ 8001d32:	f410 7f80 	tst.w	r0, #256	; 0x100
  8001d36:	d007      	beq.n	8001d48 <vDATATask+0x4c>
     usRes = input_regs[reg_addr];
  8001d38:	4b94      	ldr	r3, [pc, #592]	; (8001f8c <vDATATask+0x290>)
@@ -3550,7 +3550,7 @@ static void vSlaveControlFSM()
  8001ed0:	d010      	beq.n	8001ef4 <vDATATask+0x1f8>
 					    	if (((uiGetDinMask() & DEVICE_DOOR_MASK)>>DEVICE_DOOR_OFFSET ) == 0)
  8001ed2:	f7ff fa0f 	bl	80012f4 <uiGetDinMask>
- 8001ed6:	f010 0f80 	tst.w	r0, #128	; 0x80
+ 8001ed6:	f410 7f80 	tst.w	r0, #256	; 0x100
  8001eda:	d111      	bne.n	8001f00 <vDATATask+0x204>
 								if (GetTimer(DOOR_CLOSE_TIME))
  8001edc:	20b4      	movs	r0, #180	; 0xb4
