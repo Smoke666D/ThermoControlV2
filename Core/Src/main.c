@@ -66,7 +66,7 @@ const osThreadAttr_t defaultTask_attributes = {
 };
 /* Definitions for DIN_DOUT */
 osThreadId_t DIN_DOUTHandle;
-uint32_t DIN_DOUTBuffer[ 128 ];
+uint32_t DIN_DOUTBuffer[ 160 ];
 osStaticThreadDef_t DIN_DOUTControlBlock;
 const osThreadAttr_t DIN_DOUT_attributes = {
   .name = "DIN_DOUT",
@@ -102,7 +102,7 @@ const osThreadAttr_t DataTask_attributes = {
 };
 /* Definitions for MBTask */
 osThreadId_t MBTaskHandle;
-uint32_t MBTaskBuffer[ 128 ];
+uint32_t MBTaskBuffer[ 258 ];
 osStaticThreadDef_t MBTaskControlBlock;
 const osThreadAttr_t MBTask_attributes = {
   .name = "MBTask",
@@ -377,7 +377,7 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_71CYCLES_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_41CYCLES_5;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();

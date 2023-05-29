@@ -15,8 +15,8 @@
 
 
 
-//#define MASTER_MODE
-#define SLAVE_MODE
+#define MASTER_MODE
+//#define SLAVE_MODE
 
  void vMainFSM(void *argument);
 
@@ -103,10 +103,10 @@ typedef enum
 #define VALVE_ON_TEMP_DELTA     2
 #define DOOR_CLOSE_TIME        180
 #define SPEED_SWITCH_AW_TEMP_DELTA 2
-#define  FAN_OFF_HW_TEMP_DELTA 2
+#define FAN_OFF_HW_TEMP_DELTA 2
 #define SPEED_3_HW_SWITCH_TEMP_DELTA 6
-#define  SPEED_2_HW_SWITCH_TEMP_DELTA 4
-#define  SPEED_1_HW_SWITCH_TEMP_DELTA 2
+#define SPEED_2_HW_SWITCH_TEMP_DELTA 4
+#define SPEED_1_HW_SWITCH_TEMP_DELTA 2
  typedef enum
  {
    TYPE = 0,

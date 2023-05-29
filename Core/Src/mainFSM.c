@@ -1,3 +1,5 @@
+
+
 /*
  * mainFSM.c
  *
@@ -39,12 +41,17 @@ void resetHWInitFlag( uint32_t flag)
 
 }
 
-
+uint8_t connection_error = 0;
 static  FAN_SPEED_t current_fan_speed = FAN_SPEED_OFF;
 static VALVE_STATE_t  valve_state = VALVE_OFF;
 static control_flsm_t control_state = INIT_STATE;
 uint16_t input_regs[REG_COUNT];
+#ifdef SLAVE_MODE
 uint16_t system_regs[DEVICE_HOLDING_FLASG ];
+#endif
+#ifdef MASTER_MODE
+uint16_t system_regs[REG_COUNT ];
+#endif
 uint8_t connection;
 /*REGS_t
  *
@@ -81,19 +88,15 @@ void vSetRegInput(REGS_t reg_addr, uint16_t data)
 		  }
 	  }
       input_regs[reg_addr] = data;
-
 }
 
 void vSetReg(REGS_t reg_addr, uint16_t data)
 {
-
-
 			  if (reg_addr == MODE)
 			  {
 				  mode_restart = 1;
 			  }
 			  system_regs[reg_addr] = data;
-
 }
 
 
@@ -156,15 +159,82 @@ static void vSetPWM( uint16_t pwm)
 
 static uint16_t timeout = 0;
 static uint16_t timer = 0;
-
+static uint16_t timerR = 0;
 
  static void DOUT_PROCESS()
  {
-	 uint8_t K2,K3,K1;
-#ifdef SLAVE_MODE
-	 vSetPWM(usGetReg(PWM));
+#ifdef MASTER_MODE
+	 if (usGetRegInput(ERROR_STATUS) &  AIR_TEMP_ERROR )
+	 {
+	 		timeout = 50;
+	 }
+	 else
+	 {
+	    if ( connection_error )
+	    {
+	    	timeout = 25;
+	    }
+	    else
+	    {
+	     		timeout = 0;
+	    }
+	 }
+	 if ( timeout )
+	     {
+	     	timer++;
+	     	if ( timer >= timeout )
+	     	{
+	     		timer = 0U;
+	     		HAL_GPIO_TogglePin( LED_G_GPIO_Port, LED_G_Pin);
+	     	}
+	     }
+	     else
+	     {
+	    	 HAL_GPIO_WritePin( LED_G_GPIO_Port, LED_G_Pin, (usGetReg(MODE) != OFF_MODE) ? GPIO_PIN_RESET: GPIO_PIN_SET);
+
+	     }
+	     switch ( usGetReg(MODE)  )
+	     {
+	     	case OFF_MODE:
+
+	     		HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET );
+	     		break;
+	     	case MANUAL_MODE:
+	     		if (usGetRegInput(TYPE) == HWC)
+	     		{
+	     			HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_RESET );
+	     		}
+	     		else
+	     		{
+	     			if (usGetReg(WORK_TEMP) < usGetReg(AIR_TEMP))
+	     			{
+	     				HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_RESET );
+	     			}
+	     			else
+	     			{
+	     				HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET );
+	     			}
+	     		}
+	     		break;
+	     	case AUTO_MODE:
+	     		timerR++;
+	     		if (timerR>=50)
+	     		{
+	     		    timerR =0;
+	     		    HAL_GPIO_TogglePin( LED_R_GPIO_Port, LED_R_Pin);
+	     		}
+	     		break;
+	     }
+
 #endif
+
+#ifdef SLAVE_MODE
+	 uint8_t K2,K3,K1;
+	 vSetPWM(usGetReg(PWM));
+
      if ((usGetRegInput(ERROR_STATUS) &  WATER_TEMP_ERROR ) || ( (usGetRegInput(ERROR_STATUS) & AIR_TEMP_ERROR) && (usGetRegInput(TYPE)==HW)))
+
+
      {
     	 timeout= 50;
      }
@@ -177,14 +247,18 @@ static uint16_t timer = 0;
        timer++;
        if (timer>=timeout)
        {
-    	   timer =0;
+    	 timer =0;
     	 HAL_GPIO_TogglePin( LED_R_GPIO_Port, LED_R_Pin);
        }
      }
      else
      {
+
     	 HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin,GPIO_PIN_RESET);
+
      }
+#endif
+
 #ifdef SLAVE_MODE
 	 if (usGetRegInput(TYPE) == NONE)
 	 {
@@ -250,6 +324,9 @@ void vDATATask(void *argument)
 
  {
    //Инициализация типа системы
+#ifdef MASTER_MODE
+	uint16_t master_delay = 0;
+#endif
 	MAIN_FSM_STATE_t InitFSM = STANDBAY_STATE;
     uint16_t error;
 	 while(1)
@@ -303,10 +380,15 @@ void vDATATask(void *argument)
 		 		}
 #endif
 #ifdef MASTER_MODE
-		 		vTaskDelay(70);
-		 		vMasterControlFSM();
+		 		if ( ++master_delay == 7)
+		 		{
+		 			master_delay = 0;
+		 			vMasterControlFSM();
+		 		}
 #endif
+
 		 		DOUT_PROCESS();
+
 		 		break;
 		 }
 		 resetHWInitFlag( PROCESS_DATA);
@@ -349,7 +431,6 @@ void ResetTimer()
 	HAL_TIM_Base_Stop_IT(&htim4);
 	TimerTriger = 0;
 }
-
 
 /*
  *
@@ -528,32 +609,32 @@ static void vSlaveControlFSM()
 #endif
 #ifdef MASTER_MODE
 uint8_t mster_control_addres =0;
+eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
 void vMasterControlFSM()
 {
 	uint16_t data[4];
+
 	data[0]=usGetReg(MODE) ;
 	data[1]=usGetReg(FAN_SPEED_CONFIG);
 	data[2]=usGetReg(WORK_TEMP);
 	data[3]=usGetReg(AIR_TEMP);
 
-	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
-	//errorCode = eMBMasterReqWriteHoldingRegister(0,17,usGetReg(AIR_TEMP),0);
-	//vTaskDelay(40);
-	//errorCode = eMBMasterReqWriteHoldingRegister(0,16,usGetReg(WORK_TEMP),0);
-	//vTaskDelay(40);
-	//errorCode = eMBMasterReqWriteHoldingRegister(0,14,usGetReg(MODE),0);
-	//vTaskDelay(40);
-	///errorCode = eMBMasterReqWriteHoldingRegister(0,15,usGetReg(FAN_SPEED_CONFIG),0);
-	vTaskDelay(40);
-	errorCode = eMBMasterReqWriteMultipleHoldingRegister(0,14,4,&data[0],0);
-	if (usGetReg( CONTROL_MODE) )
+    errorCode = eMBMasterReqWriteMultipleHoldingRegister( 0, 13, 4, &data[0], 0);
+
+
+	if ( usGetReg( CONTROL_MODE ) )
 	{
 		mster_control_addres++;
-		if (mster_control_addres >usGetReg( DEVICE_COUNT))
+		if ( mster_control_addres > usGetReg( DEVICE_COUNT ) )
 		{
 			mster_control_addres = 1;
+			connection_error = 0;
 		}
-
+		errorCode = eMBMasterReqReadHoldingRegister( mster_control_addres, 5, 5, 0 );
+		if ( errorCode == MB_MRE_TIMEDOUT )
+		{
+			connection_error = 1;
+		}
 	}
 }
 #endif

@@ -260,7 +260,9 @@ volatile uint16_t ddata;
 	  {
 		    HAL_ADC_Start_DMA(&hadc1,&ADC1_DMABuffer[0], 9);
 		  	vTaskDelay(1);
+#ifdef SLAVE_MODE
 			HAL_GPIO_WritePin( LED_G_GPIO_Port, LED_G_Pin,GPIO_PIN_SET);
+#endif
 			if (DataReadyFlag == 0)
 			{
 			   init_timer++;
@@ -306,20 +308,26 @@ volatile uint16_t ddata;
 			vSetReg(WORK_TEMP , ADC_RAW[0]/136 +5);
 			vSetReg(MODE,(uiGetDinMask() & DEVICE_TYPE_MASK)>>DEVICE_TYPE_OFFSET);
 			vSetReg(FAN_SPEED_CONFIG,(uiGetDinMask() & DEVICE_FAN_MASK)>>DEVICE_FAN_OFFSET);
-			temp1 = vAinGetData(AIN_3);
-			if (temp1>35000)
+			temp = vAinGetData(AIN_3);
+			if  ((temp>=35000) || (temp <3500))
 			{
-				temp1 = vAinGetData(AIN_2);
-				if (temp1 < 35000)
+				temp = vAinGetData(AIN_2);
+				if  ((temp<35000) && (temp >3500))
 				{
-					vSetReg(AIR_TEMP, (uint16_t)fGetAinCalData(AIN_2,temp1));
+					vSetReg(AIR_TEMP, (uint16_t)fGetAinCalData(AIN_2,temp));
+					vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) & ~AIR_TEMP_ERROR);
+				}
+				else
+				{
+					vSetReg(AIR_TEMP, -1);
+					vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) | AIR_TEMP_ERROR);
 				}
 
 			}
 			else
 			{
-					vSetReg(AIR_TEMP, (uint16_t)fGetAinCalData(AIN_3,temp1));
-					//vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) & ~WATER_TEMP_ERROR);
+					vSetReg(AIR_TEMP, (uint16_t)fGetAinCalData(AIN_3,temp));
+					vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) & ~AIR_TEMP_ERROR);
 			}
 						//temp1 = vAinGetData(AIN_3);
 						//if (temp1>35000)
@@ -361,10 +369,11 @@ volatile uint16_t ddata;
 		//	vSetRegInput(WATER_TEMP  , iGetTemp(1));
 		//	vSetRegInput(IN_AIR_TEMP , iGetTemp(2));
 
-			vSetRegInput(TYPE, (uiGetDinMask() & DEVICE_MODE_MASK)>>DEVICE_MODE_OFFSET );
 			vUPDATEDin((uiGetDinMask() & DEVICE_DOOR_MASK)>>DEVICE_DOOR_OFFSET  );
 #endif
+			vSetRegInput(TYPE, (uiGetDinMask() & DEVICE_MODE_MASK)>>DEVICE_MODE_OFFSET );
 	  }
+
  }
 
  /*
