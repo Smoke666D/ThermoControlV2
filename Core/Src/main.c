@@ -182,11 +182,32 @@ void vTimerInit(uint16_t timeout)
 }
 void vStartTimer()
 {
+	HAL_TIM_Base_Stop_IT(&htim2);
+	htim2.Instance->CNT=0;
 	HAL_TIM_Base_Start_IT(&htim2);
 }
 void vStopTimer()
 {
 	HAL_TIM_Base_Stop_IT(&htim2);
+}
+
+void vRespondInit(int16_t timeout)
+{
+	htim4.Init.Period = timeout*2;
+	    if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
+		{
+		   Error_Handler();
+		}
+}
+void vStartRespond()
+{
+	HAL_TIM_Base_Stop_IT(&htim4);
+	htim4.Instance->CNT=0;
+	HAL_TIM_Base_Start_IT(&htim4);
+}
+void vStopRespond()
+{
+	HAL_TIM_Base_Stop_IT(&htim4);
 }
 /* USER CODE END 0 */
 
@@ -309,12 +330,13 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI_DIV2;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL16;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL8;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -576,7 +598,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 38400;
   huart1.Init.WordLength = UART_WORDLENGTH_9B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_ODD;
@@ -710,7 +732,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	  }
 #endif
 #ifdef MASTER_MODE
-	 if (htim->Instance == TIM2) {
+	 if ((htim->Instance == TIM2) || (htim->Instance == TIM4))  {
 	 prvvTIMERExpiredISR();
 	 }
 #endif

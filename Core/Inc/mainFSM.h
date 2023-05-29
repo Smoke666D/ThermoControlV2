@@ -15,8 +15,8 @@
 
 
 
-#define MASTER_MODE
-//#define SLAVE_MODE
+//#define MASTER_MODE
+#define SLAVE_MODE
 
  void vMainFSM(void *argument);
 
@@ -180,5 +180,6 @@ EventGroupHandle_t xGetUARTEvent();
 uint16_t usGetReg( REGS_t reg_addr);
 void vSetReg(REGS_t reg_addr, uint16_t data);
 uint16_t usGetRegInput( REGS_t reg_addr);
+uint8_t usGetConnection();
 void vSetRegInput(REGS_t reg_addr, uint16_t data);
 #endif /* SRC_MAINFSM_H_ */

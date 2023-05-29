@@ -129,6 +129,12 @@ static DinConfig_t xDinConfig[ DIN_CHANNEL];
 static EventGroupHandle_t xSystemEventGroupHandle;
 static uint8_t DataReadyFlag = 0;
 extern ADC_HandleTypeDef hadc1;
+#ifdef MASTER_MODE
+static uint16_t timeout = 0;
+static uint16_t timer = 0;
+static uint16_t timerR = 0;
+#endif
+
 
  void vGetAverDataFromRAW(uint16_t * InData, uint16_t *OutData, uint8_t InIndex, uint8_t OutIndex, uint8_t Size, uint16_t BufferSize);
 /*
@@ -258,6 +264,73 @@ volatile uint16_t ddata;
 	  vDINInit();
 	  for(;;)
 	  {
+#ifdef MASTER_MODE
+		  if (usGetRegInput(ERROR_STATUS) &  AIR_TEMP_ERROR )
+		  	 {
+		  	 		timeout = 500;
+		  	 }
+		  	 else
+		  	 {
+		  	    if ( usGetConnection() )
+		  	    {
+		  	    	timeout = 250;
+		  	    }
+		  	    else
+		  	    {
+		  	     		timeout = 0;
+		  	    }
+		  	 }
+		  	 if ( timeout )
+		  	     {
+		  	     	timer++;
+		  	     	if ( timer >= timeout )
+		  	     	{
+		  	     		timer = 0U;
+		  	     		HAL_GPIO_TogglePin( LED_G_GPIO_Port, LED_G_Pin);
+		  	     	}
+		  	     }
+		  	     else
+		  	     {
+		  	    	 HAL_GPIO_WritePin( LED_G_GPIO_Port, LED_G_Pin, (usGetReg(MODE) != OFF_MODE) ? GPIO_PIN_RESET: GPIO_PIN_SET);
+
+		  	     }
+		  	     switch ( usGetReg(MODE)  )
+		  	     {
+		  	     	case OFF_MODE:
+
+		  	     		HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET );
+		  	     		break;
+		  	     	case 2:
+		  	     		if (usGetRegInput(TYPE) == HWC)
+		  	     		{
+		  	     			HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_RESET );
+		  	     		}
+		  	     		else
+		  	     		{
+		  	     			if (usGetReg(WORK_TEMP) < usGetReg(AIR_TEMP))
+		  	     			{
+		  	     				HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_RESET );
+		  	     			}
+		  	     			else
+		  	     			{
+		  	     				HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET );
+		  	     			}
+		  	     		}
+		  	     		break;
+		  	     	case 1:
+		  	     		timerR++;
+		  	     		if (timerR>=500)
+		  	     		{
+		  	     		    timerR =0;
+		  	     		    HAL_GPIO_TogglePin( LED_R_GPIO_Port, LED_R_Pin);
+		  	     		}
+		  	     		break;
+		  	     }
+
+
+#endif
+
+
 		    HAL_ADC_Start_DMA(&hadc1,&ADC1_DMABuffer[0], 9);
 		  	vTaskDelay(1);
 #ifdef SLAVE_MODE

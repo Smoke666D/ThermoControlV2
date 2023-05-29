@@ -53,6 +53,11 @@ uint16_t system_regs[DEVICE_HOLDING_FLASG ];
 uint16_t system_regs[REG_COUNT ];
 #endif
 uint8_t connection;
+
+uint8_t usGetConnection()
+{
+	return connection_error;
+}
 /*REGS_t
  *
  */
@@ -94,7 +99,10 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 {
 			  if (reg_addr == MODE)
 			  {
-				  mode_restart = 1;
+				  if (system_regs[reg_addr] != data)
+				  {
+					  mode_restart = 1;
+				  }
 			  }
 			  system_regs[reg_addr] = data;
 }
@@ -107,11 +115,11 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 
 #ifdef SLAVE_MODE
 	 addres = (uiGetDinMask() & DEVICE_ADDR_MASK)>>DEVICE_ADDR_OFFSET;
-	 eMBInit(MB_RTU,addres,0,115200,MB_PAR_ODD );
+	 eMBInit(MB_RTU,addres,0,38400,MB_PAR_ODD );
 	 eMBEnable(  );
 #endif
 #ifdef MASTER_MODE
-	 eMBMasterInit(MB_RTU,0,115200,MB_PAR_ODD );
+	 eMBMasterInit(MB_RTU,0,38400,MB_PAR_ODD );
 	 eMBMasterEnable();
 #endif
 	 xEventGroupSetBits(xSystemEventGroupHandle,  MB_READY );
@@ -163,70 +171,7 @@ static uint16_t timerR = 0;
 
  static void DOUT_PROCESS()
  {
-#ifdef MASTER_MODE
-	 if (usGetRegInput(ERROR_STATUS) &  AIR_TEMP_ERROR )
-	 {
-	 		timeout = 50;
-	 }
-	 else
-	 {
-	    if ( connection_error )
-	    {
-	    	timeout = 25;
-	    }
-	    else
-	    {
-	     		timeout = 0;
-	    }
-	 }
-	 if ( timeout )
-	     {
-	     	timer++;
-	     	if ( timer >= timeout )
-	     	{
-	     		timer = 0U;
-	     		HAL_GPIO_TogglePin( LED_G_GPIO_Port, LED_G_Pin);
-	     	}
-	     }
-	     else
-	     {
-	    	 HAL_GPIO_WritePin( LED_G_GPIO_Port, LED_G_Pin, (usGetReg(MODE) != OFF_MODE) ? GPIO_PIN_RESET: GPIO_PIN_SET);
 
-	     }
-	     switch ( usGetReg(MODE)  )
-	     {
-	     	case OFF_MODE:
-
-	     		HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET );
-	     		break;
-	     	case MANUAL_MODE:
-	     		if (usGetRegInput(TYPE) == HWC)
-	     		{
-	     			HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_RESET );
-	     		}
-	     		else
-	     		{
-	     			if (usGetReg(WORK_TEMP) < usGetReg(AIR_TEMP))
-	     			{
-	     				HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_RESET );
-	     			}
-	     			else
-	     			{
-	     				HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET );
-	     			}
-	     		}
-	     		break;
-	     	case AUTO_MODE:
-	     		timerR++;
-	     		if (timerR>=50)
-	     		{
-	     		    timerR =0;
-	     		    HAL_GPIO_TogglePin( LED_R_GPIO_Port, LED_R_Pin);
-	     		}
-	     		break;
-	     }
-
-#endif
 
 #ifdef SLAVE_MODE
 	 uint8_t K2,K3,K1;
@@ -275,6 +220,7 @@ static uint16_t timerR = 0;
 	     		 K3 = 1;
 	     		 break;
 	     	 case FAN_SPEED_MID:
+
 	     		 K2 = 1;
 	     		 break;
 	     	 case FAN_SPEED_MAX:
@@ -567,6 +513,7 @@ static void vSlaveControlFSM()
 					    		break;
 					    	}
 					    	vSetState(usGetReg(FAN_SPEED_CONFIG), VALVE_AUTO);
+					    	break;
 					    }
 					    if ((usGetRegInput(TYPE) == AW) && ( usGetReg(MODE) == DEV_AUTO))
 					    {
@@ -612,17 +559,41 @@ uint8_t mster_control_addres =0;
 eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
 void vMasterControlFSM()
 {
-	uint16_t data[4];
 
-	data[0]=usGetReg(MODE) ;
-	data[1]=usGetReg(FAN_SPEED_CONFIG);
+	uint16_t data[4];
+    switch(usGetReg(MODE) )
+    {
+    	case 0:
+    		data[0]= OFF_MODE;
+    		break;
+    	case 1:
+    		data[0] = AUTO_MODE;
+    		break;
+    	case 2:
+    		data[0] = MANUAL_MODE;
+    		break;
+    }
+
+	switch (usGetReg(FAN_SPEED_CONFIG))
+	{
+		case 0:
+			data[1] = FAN_SPEED_MID;
+			break;
+		case 2:
+			data[1] = FAN_SPEED_MIN;
+			break;
+		case 1:
+			data[1] = FAN_SPEED_MAX;
+			break;
+	}
+
 	data[2]=usGetReg(WORK_TEMP);
 	data[3]=usGetReg(AIR_TEMP);
 
     errorCode = eMBMasterReqWriteMultipleHoldingRegister( 0, 13, 4, &data[0], 0);
 
 
-	if ( usGetReg( CONTROL_MODE ) )
+/*	if (  usGetReg( CONTROL_MODE ) && (errorCode == MB_MRE_NO_ERR) )
 	{
 		mster_control_addres++;
 		if ( mster_control_addres > usGetReg( DEVICE_COUNT ) )
@@ -630,11 +601,23 @@ void vMasterControlFSM()
 			mster_control_addres = 1;
 			connection_error = 0;
 		}
-		errorCode = eMBMasterReqReadHoldingRegister( mster_control_addres, 5, 5, 0 );
+		vTaskDelay(200);
+		errorCode = eMBMasterReqReadInputRegister( mster_control_addres, 5, 5, 0 );
 		if ( errorCode == MB_MRE_TIMEDOUT )
 		{
 			connection_error = 1;
 		}
+		else
+		{
+			connection_error = 0;
+		}
+
+
 	}
+	else
+	{
+		connection_error = 0;
+
+	}*/
 }
 #endif
