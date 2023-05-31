@@ -593,7 +593,7 @@ void vMasterControlFSM()
     errorCode = eMBMasterReqWriteMultipleHoldingRegister( 0, 13, 4, &data[0], 0);
 
 
-/*	if (  usGetReg( CONTROL_MODE ) && (errorCode == MB_MRE_NO_ERR) )
+	if (  usGetReg( CONTROL_MODE ) && (errorCode == MB_MRE_NO_ERR) )
 	{
 		mster_control_addres++;
 		if ( mster_control_addres > usGetReg( DEVICE_COUNT ) )
@@ -618,6 +618,6 @@ void vMasterControlFSM()
 	{
 		connection_error = 0;
 
-	}*/
+	}
 }
 #endif

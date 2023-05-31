@@ -29,17 +29,17 @@ const uint16_t CalPoint[20][2] = {{0,32742},
 							     {50,3593}
 };
 #define K10	10000
-const uint16_t B57164CalPoint[11][2] = {{0,K10*3.3208},
-								 {5,K10*2.5842},
-								 {10,K10*2.0238},
-								 {15,K10*1.5858},
-								 {20,K10*1.2507},
+const uint16_t B57164CalPoint[11][2] = {{0,K10*3.5563},
+								 {5,K10*2.7119},
+								 {10,K10*2.086},
+								 {15,K10*1.6204},
+								 {20,K10*1.2683},
 								 {25,K10},
-								 {30,K10*0.7964},
-								 {35,K10*0.64053},
-								 {40,K10*0.51772},
-								 {45,K10*0.41958},
-							     {50,K10*0.34172}
+								 {30,K10*0.7942},
+								 {35,K10*0.63268},
+								 {40,K10*0.5074},
+								 {45,K10*0.41026},
+							     {50,K10*0.33363}
 };
 
 const uint16_t Resistanse[][2] = {{0,32742},
@@ -258,6 +258,7 @@ void vADCReady()
  {
 //volatile float temp1;
 volatile uint16_t ddata;
+uint16_t config_temp;
 	  uint16_t temp = 0;
 	  uint8_t init_timer = 0;
 	  xSystemEventGroupHandle =  xGetSystemControlEvent();
@@ -375,10 +376,21 @@ volatile uint16_t ddata;
 			HAL_ADC_Stop_DMA(&hadc1);
 			vGetAverDataFromRAW(&ADC1_DMABuffer[0],&ADC_RAW[0],0,0,3,3);
 #ifdef MASTER_MODE
+
 			vSetReg(DEVICE_TYPE,  (uiGetDinMask() & DEVICE_MODE_MASK)>>DEVICE_MODE_OFFSET );
 			vSetReg(DEVICE_COUNT, (uiGetDinMask() & DEVICE_ADDR_MASK)>>DEVICE_ADDR_OFFSET);
 			vSetReg(CONTROL_MODE, (uiGetDinMask() & DEVICE_MASTER_CONTROL_MASK)>>DEVICE_MASTER_CONTROL_OFFSET);
-			vSetReg(WORK_TEMP , ADC_RAW[0]/136 +5);
+
+			config_temp = ADC_RAW[0];
+			if (config_temp <150)
+			{
+				config_temp = 150;
+			}
+			if (config_temp > 3670)
+			{
+				config_temp = 3670;
+			}
+			vSetReg(WORK_TEMP , (config_temp-150)/115 +5);
 			vSetReg(MODE,(uiGetDinMask() & DEVICE_TYPE_MASK)>>DEVICE_TYPE_OFFSET);
 			vSetReg(FAN_SPEED_CONFIG,(uiGetDinMask() & DEVICE_FAN_MASK)>>DEVICE_FAN_OFFSET);
 			temp = vAinGetData(AIN_3);
@@ -416,6 +428,8 @@ volatile uint16_t ddata;
 #endif
 
 #ifdef SLAVE_MODE
+			vSetReg(ADC1_DATA,vAinGetData(AIN_2));
+			vSetReg(ADC2_DATA,vAinGetData(AIN_3) );
 			temp = vAinGetData(AIN_2);
 			if ((temp>=35000) || (temp <3500))
 			{
@@ -469,7 +483,7 @@ volatile uint16_t ddata;
  }
 
 
-#define A 220
+#define A 200
 
 
 static uint16_t vRCFilter( uint16_t input,uint16_t * old_output)

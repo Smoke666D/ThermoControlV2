@@ -15,8 +15,8 @@
 
 
 
-//#define MASTER_MODE
-#define SLAVE_MODE
+#define MASTER_MODE
+//#define SLAVE_MODE
 
  void vMainFSM(void *argument);
 
@@ -59,7 +59,7 @@
 #define  DEVICE_INPUT		   8
 #define  DEVICE_HOLDING_START  (DEVICE_INPUT_START + DEVICE_INPUT)
 #define  DEVICE_HOLDING        30
-#define  DEVICE_HOLDING_FLASG  5
+#define  DEVICE_HOLDING_FLASG  7
 #define REG_COUNT 10
 
 
@@ -127,7 +127,9 @@ typedef enum
    DEVICE_TYPE = 6,
    ERROR_MASTER_STATUS = 7,
 #endif
-   PWM = 4
+   PWM = 4,
+   ADC1_DATA = 5,
+   ADC2_DATA = 6,
  } REGS_t;
 #define REG_COUNT  10
  typedef enum
