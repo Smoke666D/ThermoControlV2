@@ -102,7 +102,7 @@ typedef enum
 #define VALVE_OFF_TEMP_DELTA 	2
 #define VALVE_ON_TEMP_DELTA     2
 #define TEMP_DELTA				2
-#define DOOR_CLOSE_TIME        180
+#define DOOR_CLOSE_TIME        120
 #define SPEED_SWITCH_AW_TEMP_DELTA 2
 #define FAN_OFF_HW_TEMP_DELTA 2
 #define SPEED_3_HW_SWITCH_TEMP_DELTA 6
@@ -170,6 +170,7 @@ typedef enum
 	WORK = 3,
 	TELEMETRY = 4,
 	ERROR_STATE = 5,
+	INIT_WORK = 6,
 
 } control_flsm_t;
 

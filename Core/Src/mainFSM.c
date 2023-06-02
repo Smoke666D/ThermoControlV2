@@ -303,7 +303,7 @@ void vDATATask(void *argument)
 		 			switch (usGetReg(MODE))
 		 		    {
 		 			  case OFF_MODE:
-		 				  vSetState(FAN_SPEED_OFF, VALVE_ON);
+		 				  vSetState(FAN_SPEED_OFF, VALVE_OFF);
 		 				  control_state = STANDBY;
 		 				  break;
 		 			  case MANUAL_MODE:
@@ -318,10 +318,15 @@ void vDATATask(void *argument)
 		 		if (((usGetRegInput(TYPE) != NONE) && (error & WATER_TEMP_ERROR ))
 		 			|| ((usGetRegInput(TYPE) == HW) && (error & AIR_TEMP_ERROR )))
 		 		{
-		 			vSetState(FAN_SPEED_OFF, VALVE_ON);
+		 			control_state = ERROR_STATE;
 		 		}
 		 		else
 		 		{
+		 			if (control_state == ERROR_STATE)
+		 			{
+		 				mode_restart = 1;
+		 				break;
+		 			}
 		 			vSlaveControlFSM();
 		 		}
 #endif
@@ -400,6 +405,9 @@ static void vSlaveControlFSM()
  {
 		switch(control_state )
 		{
+			case ERROR_STATE:
+				vSetState(FAN_SPEED_OFF, VALVE_ON);
+				break;
 			case STANDBY: //Дежурный режим
 				if ( usGetRegInput(WATER_TEMP) <=  STANDBY_WATER_ON_TEMP )
 				{
@@ -414,23 +422,104 @@ static void vSlaveControlFSM()
 			    vSetState(FAN_SPEED_OFF, VALVE_AUTO);
 				break;
 			case PREHEAT:
-					 vSetState(FAN_SPEED_OFF, VALVE_ON);
-					 if (GetTimer(PREHEAT_OFF_TIME) &&  (usGetRegInput(WATER_TEMP) >= PREHEAT_OFF_TEMP ) )
-					 {
-						 ResetTimer();
-						 control_state =  WORK;
-					 }
-					 break;
+				    vSetState(FAN_SPEED_OFF, VALVE_ON);
+				    if ( ( usGetReg(MODE) == DEV_MANUAL) && (usGetRegInput(TYPE) == HWC))
+				    {
+				    	control_state = (usGetRegInput(WATER_TEMP) > 8 ) ? INIT_WORK : PREHEAT;
+				    }
+				    else
+				    {
+				    	if (GetTimer(PREHEAT_OFF_TIME) &&  (usGetRegInput(WATER_TEMP) >= PREHEAT_OFF_TEMP ) )
+				    	{
+				    		ResetTimer();
+				    		control_state =  INIT_WORK;
+				    	}
+				    }
+					break;
+			case INIT_WORK:
+				vSetRegInput(DOOR_STATE_TRIGGER,CLOSED);
+				if  ((usGetRegInput(TYPE) == HW) && ( usGetReg(MODE) == DEV_AUTO))
+				{
+					if ( usGetRegInput(IN_AIR_TEMP) < ( usGetReg(WORK_TEMP) - 2*TEMP_DELTA))
+					{
+						vSetState(FAN_SPEED_MAX, VALVE_ON);
+						break;
+					}
+					if (usGetRegInput(IN_AIR_TEMP) < ( usGetReg(WORK_TEMP) - TEMP_DELTA))
+					{
+						vSetState(FAN_SPEED_MID,VALVE_ON);
+						break;
+					}
+					if  (usGetRegInput(IN_AIR_TEMP)  <  usGetReg(WORK_TEMP))
+					{
+						vSetState(FAN_SPEED_MIN ,VALVE_ON);
+						break;
+					}
+					if (usGetRegInput(IN_AIR_TEMP) ==  usGetReg(WORK_TEMP) )
+					{
+						vSetState(FAN_SPEED_MIN ,VALVE_OFF);
+						break;
+					}
+					if (usGetRegInput(IN_AIR_TEMP)  >  usGetReg(WORK_TEMP) )
+					{
+						vSetState(FAN_SPEED_OFF ,VALVE_OFF);
+						break;
+					}
+				}
+				if ( (usGetRegInput(TYPE) == AW) && ( usGetReg(MODE) == DEV_AUTO))
+				{
+					if (usGetReg(AIR_TEMP) < ( usGetReg(WORK_TEMP) - TEMP_DELTA))
+					{
+						vSetState( FAN_SPEED_MID, VALVE_ON);
+						break;
+					}
+					if (usGetReg(AIR_TEMP) <  usGetReg(WORK_TEMP))
+					{
+						vSetState( FAN_SPEED_MIN ,VALVE_ON);
+						break;
+					}
+					if (usGetReg(AIR_TEMP) ==  usGetReg(WORK_TEMP))
+					{
+						vSetState( FAN_SPEED_MIN ,VALVE_OFF );
+						break;
+					}
+					if (usGetReg(AIR_TEMP) > usGetReg(WORK_TEMP) )
+					{
+						vSetState( FAN_SPEED_OFF ,VALVE_OFF );
+					    break;
+					}
+				}
+				if (( usGetReg(MODE) == DEV_MANUAL) && (usGetRegInput(TYPE) == HWC))
+				{
+					vSetState(usGetReg(FAN_SPEED_CONFIG),( usGetRegInput(IN_AIR_TEMP) <  usGetReg(WORK_TEMP)) ? VALVE_OFF: VALVE_ON);
+				}
+				else
+				{
+					vSetState(usGetReg(FAN_SPEED_CONFIG),( usGetRegInput(IN_AIR_TEMP) <  usGetReg(WORK_TEMP)) ? VALVE_ON: VALVE_OFF);
+				}
+				control_state =  WORK;
+				break;
 				 case WORK:
-					    //Режим разморозки
-					    if (usGetRegInput(WATER_TEMP) < WATER_FREEZE_TEMP)
-					 	{
-					    	vSetRegInput(DOOR_STATE_TRIGGER,CLOSED);
-					 		control_state = PREHEAT;
-					 		break;
-					 	}
+					    if (( usGetReg(MODE) == DEV_MANUAL) && (usGetRegInput(TYPE) == HWC))
+						{
+					    	if (usGetRegInput(WATER_TEMP) < 5)
+					    	{
+					    		control_state = PREHEAT;
+					    		break;
+					    	}
+						}
+					    else
+					    {
+					    	//Режим разморозки
+					    	if (usGetRegInput(WATER_TEMP) < WATER_FREEZE_TEMP)
+					    	{
+					    			control_state = PREHEAT;
+					    			break;
+					    	}
+					    }
 					    //Режим срабатывания дверных концевиков
-					    if ((usGetRegInput(DOOR_STATE_TRIGGER) !=CLOSED) && (usGetReg(MODE) == DEV_AUTO ))
+					    if ( (usGetRegInput(DOOR_STATE_TRIGGER) !=CLOSED) &&
+					    		( (usGetReg(MODE) == DEV_AUTO ) ||  ((usGetReg(MODE) == DEV_MANUAL ) && (usGetRegInput(TYPE) == HWC))))
 						{
 					    	if (usGetRegInput(DOOR_STATE_TRIGGER) == REOPEN)
 					    	{
@@ -441,42 +530,40 @@ static void vSlaveControlFSM()
 							 {
 								if (GetTimer(DOOR_CLOSE_TIME))
 								{
-									 vSetRegInput(DOOR_STATE_TRIGGER,CLOSED);
 									 ResetTimer();
+									 control_state =  INIT_WORK;
+									 break;
 								}
 							}
-							else
-							{
-								vSetState(FAN_SPEED_MAX, VALVE_ON);
-							}
+							vSetState(FAN_SPEED_MAX, VALVE_ON);
 							break;
 						}
 					    if ((usGetRegInput(TYPE) == HW) && ( usGetReg(MODE) == DEV_AUTO))
 					    {
 
-					    	if ( usGetRegInput(IN_AIR_TEMP)  < ( usGetReg(WORK_TEMP) - SPEED_3_HW_SWITCH_TEMP_DELTA  ) )
+					    	if ( usGetRegInput(IN_AIR_TEMP)  <= ( usGetReg(WORK_TEMP) - 3*TEMP_DELTA  ) )
 					    	{
 					    		vSetState(FAN_SPEED_MAX, VALVE_ON);
 					    		break;
 					    	}
-					    	if ( usGetRegInput(IN_AIR_TEMP) < ( usGetReg(WORK_TEMP) - SPEED_2_HW_SWITCH_TEMP_DELTA))
+					    	if ( usGetRegInput(IN_AIR_TEMP) < ( usGetReg(WORK_TEMP) - 2*TEMP_DELTA))
 					    	{
-					    		vSetState(FAN_SPEED_AUTO,  VALVE_AUTO);
+					    		vSetState(FAN_SPEED_AUTO, VALVE_ON);
 					    		break;
 					    	}
-					    	if ( usGetRegInput(IN_AIR_TEMP) == ( usGetReg(WORK_TEMP) - SPEED_2_HW_SWITCH_TEMP_DELTA))
+					    	if ( usGetRegInput(IN_AIR_TEMP) == ( usGetReg(WORK_TEMP) - 2*TEMP_DELTA))
 					    	{
-					    		vSetState(FAN_SPEED_MID, VALVE_AUTO);
+					    		vSetState(FAN_SPEED_MID, VALVE_ON);
 					    	    break;
 					    	}
-					    	if (usGetRegInput(IN_AIR_TEMP) < ( usGetReg(WORK_TEMP) - SPEED_1_HW_SWITCH_TEMP_DELTA))
+					    	if (usGetRegInput(IN_AIR_TEMP) < ( usGetReg(WORK_TEMP) - TEMP_DELTA))
 					    	{
-					    		vSetState(FAN_SPEED_AUTO,VALVE_AUTO);
+					    		vSetState(FAN_SPEED_AUTO,VALVE_ON);
 					    		break;
 					    	}
-					    	if (usGetRegInput(IN_AIR_TEMP) == ( usGetReg(WORK_TEMP) - SPEED_1_HW_SWITCH_TEMP_DELTA))
+					    	if (usGetRegInput(IN_AIR_TEMP) == ( usGetReg(WORK_TEMP) - TEMP_DELTA))
 					    	{
-					    		vSetState(FAN_SPEED_MIN ,VALVE_AUTO);
+					    		vSetState(FAN_SPEED_MIN ,VALVE_ON);
 					    		break;
 					    	 }
 					    	if  (usGetRegInput(IN_AIR_TEMP)  <  usGetReg(WORK_TEMP))
@@ -486,20 +573,35 @@ static void vSlaveControlFSM()
 					    	}
 					    	if (usGetRegInput(IN_AIR_TEMP) ==  usGetReg(WORK_TEMP) )
 					    	{
-					    		vSetState(FAN_SPEED_AUTO ,VALVE_OFF);
+					    		vSetState(FAN_SPEED_MIN ,VALVE_OFF);
 					    		break;
 					    	}
-					    	if (usGetRegInput(IN_AIR_TEMP)  < ( usGetReg(WORK_TEMP) + FAN_OFF_HW_TEMP_DELTA))
+					    	if (usGetRegInput(IN_AIR_TEMP)  < ( usGetReg(WORK_TEMP) + TEMP_DELTA))
 					    	{
 					    		vSetState(FAN_SPEED_AUTO ,VALVE_OFF);
 					    		break;
 					    	}
-					    	if (usGetRegInput(IN_AIR_TEMP) >= ( usGetReg(WORK_TEMP) + FAN_OFF_HW_TEMP_DELTA))
+					    	if (usGetRegInput(IN_AIR_TEMP) >= ( usGetReg(WORK_TEMP) + TEMP_DELTA))
 					    	{
 					    		vSetState(FAN_SPEED_OFF,VALVE_OFF);
 					    		break;
 					    	}
 					    }
+					    if (( usGetRegInput(TYPE) == HWC ) && ( usGetReg(MODE) == DEV_MANUAL))
+					 	{
+					 		if (usGetReg(AIR_TEMP) > ( usGetReg(WORK_TEMP) + VALVE_OFF_TEMP_DELTA))
+					 		{
+					 			vSetState(usGetReg(FAN_SPEED_CONFIG), VALVE_ON);
+					 			break;
+					 		}
+					 		if (usGetReg(AIR_TEMP) < (usGetReg(WORK_TEMP) - VALVE_ON_TEMP_DELTA ))
+					 		{
+					 			vSetState(usGetReg(FAN_SPEED_CONFIG), VALVE_OFF);
+					 			break;
+					 			}
+					 			vSetState(usGetReg(FAN_SPEED_CONFIG), VALVE_AUTO);
+					 			break;
+					 	}
 					    if  ( usGetReg(MODE) == DEV_MANUAL)
 					    {
 					    	if (usGetReg(AIR_TEMP) > ( usGetReg(WORK_TEMP) + VALVE_OFF_TEMP_DELTA))
