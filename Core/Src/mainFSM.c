@@ -115,7 +115,7 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 
 #ifdef SLAVE_MODE
 	 addres = (uiGetDinMask() & DEVICE_ADDR_MASK)>>DEVICE_ADDR_OFFSET;
-	 eMBInit(MB_RTU,addres,0,38400,MB_PAR_ODD );
+	 eMBInit(MB_RTU,addres,0,19200,MB_PAR_ODD );
 	 eMBEnable(  );
 #endif
 #ifdef MASTER_MODE
@@ -438,6 +438,7 @@ static void vSlaveControlFSM()
 					break;
 			case INIT_WORK:
 				vSetRegInput(DOOR_STATE_TRIGGER,CLOSED);
+				control_state =  WORK;
 				if  ((usGetRegInput(TYPE) == HW) && ( usGetReg(MODE) == DEV_AUTO))
 				{
 					if ( usGetRegInput(IN_AIR_TEMP) < ( usGetReg(WORK_TEMP) - 2*TEMP_DELTA))
@@ -497,7 +498,7 @@ static void vSlaveControlFSM()
 				{
 					vSetState(usGetReg(FAN_SPEED_CONFIG),( usGetRegInput(IN_AIR_TEMP) <  usGetReg(WORK_TEMP)) ? VALVE_ON: VALVE_OFF);
 				}
-				control_state =  WORK;
+
 				break;
 				 case WORK:
 					    if (( usGetReg(MODE) == DEV_MANUAL) && (usGetRegInput(TYPE) == HWC))
@@ -513,8 +514,8 @@ static void vSlaveControlFSM()
 					    	//Режим разморозки
 					    	if (usGetRegInput(WATER_TEMP) < WATER_FREEZE_TEMP)
 					    	{
-					    			control_state = PREHEAT;
-					    			break;
+					    		control_state = PREHEAT;
+					    		break;
 					    	}
 					    }
 					    //Режим срабатывания дверных концевиков
@@ -540,7 +541,6 @@ static void vSlaveControlFSM()
 						}
 					    if ((usGetRegInput(TYPE) == HW) && ( usGetReg(MODE) == DEV_AUTO))
 					    {
-
 					    	if ( usGetRegInput(IN_AIR_TEMP)  <= ( usGetReg(WORK_TEMP) - 3*TEMP_DELTA  ) )
 					    	{
 					    		vSetState(FAN_SPEED_MAX, VALVE_ON);
@@ -598,9 +598,9 @@ static void vSlaveControlFSM()
 					 		{
 					 			vSetState(usGetReg(FAN_SPEED_CONFIG), VALVE_OFF);
 					 			break;
-					 			}
-					 			vSetState(usGetReg(FAN_SPEED_CONFIG), VALVE_AUTO);
-					 			break;
+					 		}
+					 		vSetState(usGetReg(FAN_SPEED_CONFIG), VALVE_AUTO);
+					 		break;
 					 	}
 					    if  ( usGetReg(MODE) == DEV_MANUAL)
 					    {
@@ -619,11 +619,10 @@ static void vSlaveControlFSM()
 					    }
 					    if ((usGetRegInput(TYPE) == AW) && ( usGetReg(MODE) == DEV_AUTO))
 					    {
-
 					    	if (usGetReg(AIR_TEMP) <= (usGetReg(WORK_TEMP) - TEMP_DELTA*2 ))
 					    	{
-					    			vSetState(FAN_SPEED_MID, VALVE_ON);
-					    			break;
+					    		vSetState(FAN_SPEED_MID, VALVE_ON);
+					    		break;
 					    	}
 					    	if (usGetReg(AIR_TEMP) < (usGetReg(WORK_TEMP) - TEMP_DELTA ))
 					    	{
