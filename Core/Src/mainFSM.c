@@ -119,7 +119,7 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 	 eMBEnable(  );
 #endif
 #ifdef MASTER_MODE
-	 eMBMasterInit(MB_RTU,0,38400,MB_PAR_ODD );
+	 eMBMasterInit(MB_RTU,0,19200,MB_PAR_ODD );
 	 eMBMasterEnable();
 #endif
 	 xEventGroupSetBits(xSystemEventGroupHandle,  MB_READY );
@@ -289,8 +289,9 @@ void vDATATask(void *argument)
 		 		 mode_restart = 1;
 		 		 break;
 		 	 case WORK_STATE:
-		 		INPUT_PROCESS();
+
 #ifdef SLAVE_MODE
+		 		INPUT_PROCESS();
 		 		if (mode_restart == 1)
 		 		{
 		 			vSetRegInput(DOOR_STATE_TRIGGER,CLOSED);

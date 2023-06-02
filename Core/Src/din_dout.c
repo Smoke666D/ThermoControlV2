@@ -135,7 +135,7 @@ static uint16_t timer = 0;
 static uint16_t timerR = 0;
 #endif
 
-
+ uint16_t vRCFilter( uint16_t input,uint16_t * old_output);
  void vGetAverDataFromRAW(uint16_t * InData, uint16_t *OutData, uint8_t InIndex, uint8_t OutIndex, uint8_t Size, uint16_t BufferSize);
 /*
  *
@@ -267,71 +267,60 @@ uint16_t config_temp;
 	  {
 #ifdef MASTER_MODE
 		  if (usGetRegInput(ERROR_STATUS) &  AIR_TEMP_ERROR )
-		  	 {
-		  	 		timeout = 500;
-		  	 }
-		  	 else
-		  	 {
-		  	    if ( usGetConnection() )
-		  	    {
-		  	    	timeout = 250;
+		  {
+		  	   timeout = 500;
+		  }
+		  else
+		  {
+			  timeout = usGetConnection() ? 250 : 0;
+
+		  }
+		  if ( timeout )
+		  {
+		  	 // timer++;
+		  	  if ( ++timer >= timeout )
+		  	  {
+		  	    timer = 0U;
+		  	     HAL_GPIO_TogglePin( LED_G_GPIO_Port, LED_G_Pin);
+		  	     HAL_GPIO_TogglePin( LED_R_GPIO_Port, LED_R_Pin);
+		  	  }
+		  }
+		  else
+		  {
+		  	   if (usGetReg(MODE) == OFF_MODE)
+		  	   {
+		  		   HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_RESET );
+		  	       HAL_GPIO_WritePin( LED_G_GPIO_Port, LED_G_Pin, GPIO_PIN_RESET );
 		  	    }
 		  	    else
 		  	    {
-		  	     		timeout = 0;
-		  	    }
-		  	 }
-		  	 if ( timeout )
-		  	     {
-		  	     	timer++;
-		  	     	if ( timer >= timeout )
-		  	     	{
-		  	     		timer = 0U;
-		  	     		HAL_GPIO_TogglePin( LED_G_GPIO_Port, LED_G_Pin);
-		  	     	}
-		  	     }
-		  	     else
-		  	     {
-		  	    	 HAL_GPIO_WritePin( LED_G_GPIO_Port, LED_G_Pin, (usGetReg(MODE) != OFF_MODE) ? GPIO_PIN_SET: GPIO_PIN_RESET);
+		  	    	if (usGetRegInput(TYPE) == HWC)
+		  	    	{
+		  	    		HAL_GPIO_WritePin( LED_G_GPIO_Port, LED_G_Pin, (usGetReg(MODE) != AUTO_MODE) ? GPIO_PIN_SET: GPIO_PIN_RESET);
+		  	    		HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, (usGetReg(MODE) != AUTO_MODE) ? GPIO_PIN_RESET: GPIO_PIN_SET);
+		  	    	}
+		  	    	else
+		  	    	{
+		  	    		HAL_GPIO_WritePin( LED_G_GPIO_Port, LED_G_Pin, GPIO_PIN_SET);
+		  	    		if ((usGetReg(MODE) == AUTO_MODE))
+		  	    		{
+		  	    			//timerR++;
+		  	    			if (++timerR>=500)
+		  	    			{
+		  	    				   timerR =0;
+		  	    				   HAL_GPIO_TogglePin( LED_R_GPIO_Port, LED_R_Pin);
+		  	    			 }
+		  	    	     }
+		  	    		 else
+		  	    		 {
+		  	    			HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin,(usGetReg(WORK_TEMP) < usGetReg(AIR_TEMP)) ? GPIO_PIN_SET :GPIO_PIN_RESET  );
 
+		  	    		}
+		  	    	}
 		  	     }
-		  	     switch ( usGetReg(MODE)  )
-		  	     {
-		  	     	case OFF_MODE:
-
-		  	     		HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_RESET );
-		  	     		break;
-		  	     	case 2:
-		  	     		if (usGetRegInput(TYPE) == HWC)
-		  	     		{
-		  	     			HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET );
-		  	     		}
-		  	     		else
-		  	     		{
-		  	     			if (usGetReg(WORK_TEMP) < usGetReg(AIR_TEMP))
-		  	     			{
-		  	     				HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET );
-		  	     			}
-		  	     			else
-		  	     			{
-		  	     				HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_RESET );
-		  	     			}
-		  	     		}
-		  	     		break;
-		  	     	case 1:
-		  	     		timerR++;
-		  	     		if (timerR>=500)
-		  	     		{
-		  	     		    timerR =0;
-		  	     		    HAL_GPIO_TogglePin( LED_R_GPIO_Port, LED_R_Pin);
-		  	     		}
-		  	     		break;
-		  	     }
-
+		  	   }
 
 #endif
-
-
 		    HAL_ADC_Start_DMA(&hadc1,&ADC1_DMABuffer[0], 9);
 		  	vTaskDelay(1);
 #ifdef SLAVE_MODE
@@ -380,7 +369,7 @@ uint16_t config_temp;
 			vSetReg(DEVICE_TYPE,  (uiGetDinMask() & DEVICE_MODE_MASK)>>DEVICE_MODE_OFFSET );
 			vSetReg(DEVICE_COUNT, (uiGetDinMask() & DEVICE_ADDR_MASK)>>DEVICE_ADDR_OFFSET);
 			vSetReg(CONTROL_MODE, (uiGetDinMask() & DEVICE_MASTER_CONTROL_MASK)>>DEVICE_MASTER_CONTROL_OFFSET);
-
+			ADC_RAW[0] = vRCFilter(ADC_RAW[0], &ADC_OLD_RAW[0]);
 			config_temp = ADC_RAW[0];
 			if (config_temp <150)
 			{
@@ -486,7 +475,7 @@ uint16_t config_temp;
 #define A 200
 
 
-static uint16_t vRCFilter( uint16_t input,uint16_t * old_output)
+ uint16_t vRCFilter( uint16_t input,uint16_t * old_output)
 {
 
 	volatile uint32_t new = input;
