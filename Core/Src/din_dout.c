@@ -292,29 +292,29 @@ uint16_t config_temp;
 		  	     }
 		  	     else
 		  	     {
-		  	    	 HAL_GPIO_WritePin( LED_G_GPIO_Port, LED_G_Pin, (usGetReg(MODE) != OFF_MODE) ? GPIO_PIN_RESET: GPIO_PIN_SET);
+		  	    	 HAL_GPIO_WritePin( LED_G_GPIO_Port, LED_G_Pin, (usGetReg(MODE) != OFF_MODE) ? GPIO_PIN_SET: GPIO_PIN_RESET);
 
 		  	     }
 		  	     switch ( usGetReg(MODE)  )
 		  	     {
 		  	     	case OFF_MODE:
 
-		  	     		HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET );
+		  	     		HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_RESET );
 		  	     		break;
 		  	     	case 2:
 		  	     		if (usGetRegInput(TYPE) == HWC)
 		  	     		{
-		  	     			HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_RESET );
+		  	     			HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET );
 		  	     		}
 		  	     		else
 		  	     		{
 		  	     			if (usGetReg(WORK_TEMP) < usGetReg(AIR_TEMP))
 		  	     			{
-		  	     				HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_RESET );
+		  	     				HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET );
 		  	     			}
 		  	     			else
 		  	     			{
-		  	     				HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET );
+		  	     				HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_RESET );
 		  	     			}
 		  	     		}
 		  	     		break;

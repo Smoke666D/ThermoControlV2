@@ -517,32 +517,38 @@ static void vSlaveControlFSM()
 					    }
 					    if ((usGetRegInput(TYPE) == AW) && ( usGetReg(MODE) == DEV_AUTO))
 					    {
-					    	if (usGetReg(AIR_TEMP) < (usGetReg(WORK_TEMP) - VALVE_ON_TEMP_DELTA ))
+
+					    	if (usGetReg(AIR_TEMP) <= (usGetReg(WORK_TEMP) - TEMP_DELTA*2 ))
 					    	{
-					    		vSetState(FAN_SPEED_MID, VALVE_ON);
+					    			vSetState(FAN_SPEED_MID, VALVE_ON);
+					    			break;
+					    	}
+					    	if (usGetReg(AIR_TEMP) < (usGetReg(WORK_TEMP) - TEMP_DELTA ))
+					    	{
+					    		vSetState(FAN_SPEED_AUTO, VALVE_ON);
 					    		break;
 					    	}
-					    	if (usGetReg(AIR_TEMP) == ( usGetReg(WORK_TEMP) - VALVE_ON_TEMP_DELTA))
+					    	if (usGetReg(AIR_TEMP) == ( usGetReg(WORK_TEMP) - TEMP_DELTA))
 					    	{
-					    		vSetState( FAN_SPEED_MIN, VALVE_AUTO);
+					    		vSetState( FAN_SPEED_MIN, VALVE_ON);
 					    		break;
 					    	}
 					    	if (usGetReg(AIR_TEMP) <  usGetReg(WORK_TEMP))
 					    	{
-					    		vSetState( FAN_SPEED_AUTO ,VALVE_AUTO);
+					    		vSetState( FAN_SPEED_MIN ,VALVE_AUTO);
 					    		break;
 					    	}
 					    	if (usGetReg(AIR_TEMP) ==  usGetReg(WORK_TEMP))
 					    	{
-					    		vSetState( FAN_SPEED_AUTO ,VALVE_OFF );
+					    		vSetState( FAN_SPEED_MIN ,VALVE_OFF );
 					    		break;
 					    	}
-					    	if (usGetReg(AIR_TEMP) < (usGetReg(WORK_TEMP) + SPEED_SWITCH_AW_TEMP_DELTA))
+					    	if (usGetReg(AIR_TEMP) < (usGetReg(WORK_TEMP) + TEMP_DELTA))
 					    	{
 					    		vSetState( FAN_SPEED_AUTO ,VALVE_OFF );
 					    		break;
 					        }
-					    	if (usGetReg(AIR_TEMP) >= (usGetReg(WORK_TEMP) + SPEED_SWITCH_AW_TEMP_DELTA))
+					    	if (usGetReg(AIR_TEMP) >= (usGetReg(WORK_TEMP) + TEMP_DELTA))
 					    	{
 					    		vSetState(FAN_SPEED_OFF,VALVE_OFF );
 					    		break;

@@ -15,8 +15,8 @@
 
 
 
-#define MASTER_MODE
-//#define SLAVE_MODE
+//#define MASTER_MODE
+#define SLAVE_MODE
 
  void vMainFSM(void *argument);
 
@@ -101,6 +101,7 @@ typedef enum
 #define WATER_FREEZE_TEMP      13
 #define VALVE_OFF_TEMP_DELTA 	2
 #define VALVE_ON_TEMP_DELTA     2
+#define TEMP_DELTA				2
 #define DOOR_CLOSE_TIME        180
 #define SPEED_SWITCH_AW_TEMP_DELTA 2
 #define FAN_OFF_HW_TEMP_DELTA 2
