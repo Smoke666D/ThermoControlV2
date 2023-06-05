@@ -493,11 +493,11 @@ static void vSlaveControlFSM()
 				}
 				if (( usGetReg(MODE) == DEV_MANUAL) && (usGetRegInput(TYPE) == HWC))
 				{
-					vSetState(usGetReg(FAN_SPEED_CONFIG),( usGetRegInput(IN_AIR_TEMP) <  usGetReg(WORK_TEMP)) ? VALVE_OFF: VALVE_ON);
+					vSetState(usGetReg(FAN_SPEED_CONFIG),( usGetReg(AIR_TEMP) <  usGetReg(WORK_TEMP)) ? VALVE_OFF: VALVE_ON);
 				}
 				else
 				{
-					vSetState(usGetReg(FAN_SPEED_CONFIG),( usGetRegInput(IN_AIR_TEMP) <  usGetReg(WORK_TEMP)) ? VALVE_ON: VALVE_OFF);
+					vSetState(usGetReg(FAN_SPEED_CONFIG),( usGetReg(AIR_TEMP) <  usGetReg(WORK_TEMP)) ? VALVE_ON: VALVE_OFF);
 				}
 
 				break;
@@ -603,6 +603,22 @@ static void vSlaveControlFSM()
 					 		vSetState(usGetReg(FAN_SPEED_CONFIG), VALVE_AUTO);
 					 		break;
 					 	}
+
+					    if (( usGetRegInput(TYPE) == HWC ) && ( usGetReg(MODE) == DEV_AUTO))
+					   	{
+					   			if (usGetReg(AIR_TEMP) > ( usGetReg(WORK_TEMP) + VALVE_OFF_TEMP_DELTA))
+					   			{
+					   					 vSetState(usGetReg(FAN_SPEED_CONFIG), VALVE_OFF);
+					   					 break;
+					   			}
+					   			if (usGetReg(AIR_TEMP) < (usGetReg(WORK_TEMP) - VALVE_ON_TEMP_DELTA ))
+					   			{
+					   					vSetState(usGetReg(FAN_SPEED_CONFIG), VALVE_ON);
+					   					 break;
+					   			}
+					   			vSetState(usGetReg(FAN_SPEED_CONFIG), VALVE_AUTO);
+					   			break;
+					   	}
 					    if  ( usGetReg(MODE) == DEV_MANUAL)
 					    {
 					    	if (usGetReg(AIR_TEMP) > ( usGetReg(WORK_TEMP) + VALVE_OFF_TEMP_DELTA))

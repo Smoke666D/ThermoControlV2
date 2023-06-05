@@ -15,8 +15,8 @@
 
 
 
-#define MASTER_MODE
-//#define SLAVE_MODE
+//#define MASTER_MODE
+#define SLAVE_MODE
 
  void vMainFSM(void *argument);
 
@@ -39,8 +39,8 @@
 #define DEVICE_MODE_OFFSET 4
 #define DEVICE_MASTER_CONTROL_MASK 0x80
 #define DEVICE_MASTER_CONTROL_OFFSET 7
-#define DEVICE_DOOR_MASK  0x100
-#define DEVICE_DOOR_OFFSET 8
+#define DEVICE_DOOR_MASK    0x100
+#define DEVICE_DOOR_OFFSET  8
 #define DEVICE_FAN_MASK  0x0300
 #define DEVICE_FAN_OFFSET 8
 #define DEVICE_TYPE_MASK   0xC00
