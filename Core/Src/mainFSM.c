@@ -125,12 +125,14 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 	 xEventGroupSetBits(xSystemEventGroupHandle,  MB_READY );
 	 while (1)
 	 {
-		 vTaskDelay(1);
+
 #ifdef SLAVE_MODE
+		 vTaskDelay(1);
 		 eMBPoll();
 #endif
 #ifdef MASTER_MODE
-	eMBMasterPoll(  );
+
+		 eMBMasterPoll(  );
 #endif
 	 }
 
@@ -275,6 +277,7 @@ void vDATATask(void *argument)
 #endif
 	MAIN_FSM_STATE_t InitFSM = STANDBAY_STATE;
     uint16_t error;
+
 	 while(1)
 	 {
 		 setHWInitFlag( PROCESS_DATA);
@@ -328,15 +331,13 @@ void vDATATask(void *argument)
 		 				mode_restart = 1;
 		 				break;
 		 			}
-		 			vSlaveControlFSM();
 		 		}
+		 		vSlaveControlFSM();
 #endif
 #ifdef MASTER_MODE
-		 		if ( ++master_delay == 7)
-		 		{
-		 			master_delay = 0;
-		 			vMasterControlFSM();
-		 		}
+
+		 	    vMasterControlFSM();
+
 #endif
 
 		 		DOUT_PROCESS();
@@ -347,7 +348,7 @@ void vDATATask(void *argument)
 	 }
  }
 
-
+#ifdef SLAVE_MODE
 uint32_t sTimer = 0;
 void vTimer1sInc()
 {
@@ -383,7 +384,7 @@ void ResetTimer()
 	HAL_TIM_Base_Stop_IT(&htim4);
 	TimerTriger = 0;
 }
-
+#endif
 /*
  *
  */
@@ -680,6 +681,7 @@ static void vSlaveControlFSM()
 #endif
 #ifdef MASTER_MODE
 uint8_t mster_control_addres =0;
+uint8_t datatemp = 0;
 eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
 void vMasterControlFSM()
 {
@@ -714,10 +716,10 @@ void vMasterControlFSM()
 	data[2]=usGetReg(WORK_TEMP);
 	data[3]=usGetReg(AIR_TEMP);
 
-    errorCode = eMBMasterReqWriteMultipleHoldingRegister( 0, 13, 4, &data[0], 0);
+	data[0]= datatemp;
+ 	eMBMasterReqWriteMultipleHoldingRegister( 0, 13, 4, &data[0], 0);
 
-
-	if (  usGetReg( CONTROL_MODE ) && (errorCode == MB_MRE_NO_ERR) )
+	if (  usGetReg( CONTROL_MODE )  )
 	{
 		mster_control_addres++;
 		if ( mster_control_addres > usGetReg( DEVICE_COUNT ) )
@@ -725,23 +727,31 @@ void vMasterControlFSM()
 			mster_control_addres = 1;
 			connection_error = 0;
 		}
-		vTaskDelay(200);
-		errorCode = eMBMasterReqReadInputRegister( mster_control_addres, 5, 5, 0 );
-		if ( errorCode == MB_MRE_TIMEDOUT )
+
+		if (++datatemp ==100)
 		{
+			datatemp = 0;
+		}
+		//vTaskDelay(100);
+	//	errorCode = eMBMasterReqWriteHoldingRegister( mster_control_addres, 12, 1, 0 );
+		//vTaskDelay(500);
+		if ( errorCode == MB_MRE_TIMEDOUT )
+	{
 			connection_error = 1;
 		}
 		else
 		{
 			connection_error = 0;
 		}
+//
+		//errorCode= MB_MRE_NO_ERR;
 
 
 	}
-	else
-	{
-		connection_error = 0;
+	//else
+	//{*/
+	//	connection_error = 0;
 
-	}
+	//}
 }
 #endif

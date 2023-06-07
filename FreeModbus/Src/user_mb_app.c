@@ -44,6 +44,13 @@ USHORT   usSRegHoldStart                              = S_REG_HOLDING_START;
 USHORT   usSRegHoldBuf[S_REG_HOLDING_NREGS]           ;
 
 
+#ifdef SLAVE_MODE
+
+void vUPDATEDin(uint8_t state )
+{
+	ucSDiscInBuf[0] = state;
+}
+
 void vUPDATECoils( uint8_t rw)
 {
 	volatile uint8_t temp;
@@ -66,7 +73,7 @@ void vUPDATECoils( uint8_t rw)
 
 
 }
-
+#endif
 
 /**
  * Modbus slave input register callback function.

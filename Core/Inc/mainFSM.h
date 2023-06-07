@@ -11,12 +11,12 @@
 #include "main.h"
 #include "FreeRTOS.h"
 #include "event_groups.h"
+#include "semphr.h"
 
 
 
-
-//#define MASTER_MODE
-#define SLAVE_MODE
+#define MASTER_MODE
+//#define SLAVE_MODE
 
  void vMainFSM(void *argument);
 
@@ -37,14 +37,16 @@
 #define DEVICE_ADDR_OFFSET 0x000
 #define DEVICE_MODE_MASK  0x0030
 #define DEVICE_MODE_OFFSET 4
-#define DEVICE_MASTER_CONTROL_MASK 0x80
-#define DEVICE_MASTER_CONTROL_OFFSET 7
+#define DEVICE_MASTER_CONTROL_MASK 0x60
+#define DEVICE_MASTER_CONTROL_OFFSET 6
 #define DEVICE_DOOR_MASK    0x100
 #define DEVICE_DOOR_OFFSET  8
 #define DEVICE_FAN_MASK  0x0300
 #define DEVICE_FAN_OFFSET 8
 #define DEVICE_TYPE_MASK   0xC00
 #define DEVICE_TYPE_OFFSET 10
+#define DEVICE_MASTER_TEMP_MASK 0x80
+#define DEVICE_MASTER_TEMP_OFFSET 7
 
 #define WATER_TEMP_ERROR       0x01
 #define AIR_TEMP_ERROR       0x02
@@ -181,6 +183,7 @@ void vDATATask(void *argument);
 EventGroupHandle_t xGetSystemControlEvent();
 EventGroupHandle_t xGetOSEvent();
 EventGroupHandle_t xGetUARTEvent();
+SemaphoreHandle_t xGetSystemSem();
 uint16_t usGetReg( REGS_t reg_addr);
 void vSetReg(REGS_t reg_addr, uint16_t data);
 uint16_t usGetRegInput( REGS_t reg_addr);

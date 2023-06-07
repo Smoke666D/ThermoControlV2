@@ -101,12 +101,12 @@ eMBMasterRTUInit(UCHAR ucPort, ULONG ulBaudRate, eMBParity eParity )
         /* If baudrate > 19200 then we should use the fixed timer values
          * t35 = 1750us. Otherwise t35 must be 3.5 times the character time.
          */
-        if( ulBaudRate > 19200 )
-        {
+      //  if( ulBaudRate > 19200 )
+      //  {
             usTimerT35_50us = 35;       /* 1800us. */
-        }
-        else
-        {
+       // }
+      // else
+       // {
             /* The timer reload value for a character is given by:
              *
              * ChTimeValue = Ticks_per_1s / ( Baudrate / 11 )
@@ -115,8 +115,8 @@ eMBMasterRTUInit(UCHAR ucPort, ULONG ulBaudRate, eMBParity eParity )
              * The reload for t3.5 is 1.5 times this value and similary
              * for t3.5.
              */
-            usTimerT35_50us = ( 7UL * 220000UL ) / ( 2UL * ulBaudRate );
-        }
+        //  usTimerT35_50us = ( 7UL * 220000UL ) / ( 2UL * ulBaudRate );
+       // }
         if( xMBMasterPortTimersInit( ( USHORT ) usTimerT35_50us ) != TRUE )
         {
             eStatus = MB_EPORTERR;
@@ -354,19 +354,19 @@ xMBMasterRTUTimerExpired(void)
     {
         /* Timer t35 expired. Startup phase is finished. */
     case STATE_M_RX_INIT:
-        xNeedPoll = xMBMasterPortEventPost(EV_MASTER_READY);
+        xNeedPoll = xMBMasterPortEventPost(EV_MASTER_READY_ISR);
         break;
 
         /* A frame was received and t35 expired. Notify the listener that
          * a new frame was received. */
     case STATE_M_RX_RCV:
-        xNeedPoll = xMBMasterPortEventPost(EV_MASTER_FRAME_RECEIVED);
+        xNeedPoll = xMBMasterPortEventPost(EV_MASTER_FRAME_RECEIVED_ISR);
         break;
 
         /* An error occured while receiving the frame. */
     case STATE_M_RX_ERROR:
         vMBMasterSetErrorType(EV_ERROR_RECEIVE_DATA);
-        xNeedPoll = xMBMasterPortEventPost( EV_MASTER_ERROR_PROCESS );
+        xNeedPoll = xMBMasterPortEventPost( EV_MASTER_ERROR_PROCESS_ISR );
         break;
 
         /* Function called in an illegal state. */
@@ -386,7 +386,7 @@ xMBMasterRTUTimerExpired(void)
     case STATE_M_TX_XFWR:
         if ( xFrameIsBroadcast == FALSE ) {
             vMBMasterSetErrorType(EV_ERROR_RESPOND_TIMEOUT);
-            xNeedPoll = xMBMasterPortEventPost(EV_MASTER_ERROR_PROCESS);
+            xNeedPoll = xMBMasterPortEventPost(EV_MASTER_ERROR_PROCESS_ISR);
         }
         break;
         /* Function called in an illegal state. */

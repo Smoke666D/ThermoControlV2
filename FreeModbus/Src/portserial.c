@@ -239,6 +239,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	HAL_UART_Receive_IT(&huart1,&rx_data_buf,1);
 	pxMBFrameCBByteReceived();
 }
+
 #endif
 /**
  * This function is serial receive callback function

@@ -57,7 +57,7 @@ void vMBMasterPortTimersT35Enable()
 //
     /* Set current timer mode, don't change it.*/
     vMBMasterSetCurTimerMode(MB_TMODE_T35);
-    vTimerInit( usT35TimeOut50us);
+ //   vTimerInit( usT35TimeOut50us);
    // rt_timer_control(&timer, RT_TIMER_CTRL_SET_TIME, &timer_tick);
 
     vStartTimer();
@@ -70,9 +70,10 @@ void vMBMasterPortTimersConvertDelayEnable()
 
     /* Set current timer mode, don't change it.*/
     vMBMasterSetCurTimerMode(MB_TMODE_CONVERT_DELAY);
-    vTimerInit(MB_MASTER_DELAY_MS_CONVERT*20);
+    vRespondInit(MB_MASTER_DELAY_MS_CONVERT);
  //   rt_timer_control(&timer, RT_TIMER_CTRL_SET_TIME, &timer_tick);
-    vStartTimer();
+
+    vStartRespond();
  //   rt_timer_start(&timer);
 }
 
@@ -82,8 +83,9 @@ void vMBMasterPortTimersRespondTimeoutEnable()
 
     /* Set current timer mode, don't change it.*/
     vMBMasterSetCurTimerMode(MB_TMODE_RESPOND_TIMEOUT);
-    vTimerInit(MB_MASTER_TIMEOUT_MS_RESPOND*20);
-    vStartTimer();
+    vRespondInit(MB_MASTER_TIMEOUT_MS_RESPOND);
+
+    vStartRespond();
   //  rt_timer_control(&timer, RT_TIMER_CTRL_SET_TIME, &timer_tick);
 
   //  rt_timer_start(&timer);
@@ -92,6 +94,7 @@ void vMBMasterPortTimersRespondTimeoutEnable()
 void vMBMasterPortTimersDisable()
 {
 	vStopTimer();
+	vStopRespond();
   //  rt_timer_stop(&timer);
 }
 #ifdef MASTER_MODE

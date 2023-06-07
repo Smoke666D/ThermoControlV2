@@ -50,8 +50,8 @@ typedef enum
 
 typedef enum
 {
-    EV_MASTER_READY                    = 1<<0,  /*!< Startup finished. */
-    EV_MASTER_FRAME_RECEIVED           = 1<<1,  /*!< Frame received. */
+    EV_MASTER_READY_ISR                = 1<<0,  /*!< Startup finished. */
+    EV_MASTER_FRAME_RECEIVED_ISR       = 1<<1,  /*!< Frame received. */
     EV_MASTER_EXECUTE                  = 1<<2,  /*!< Execute function. */
     EV_MASTER_FRAME_SENT               = 1<<3,  /*!< Frame sent. */
     EV_MASTER_ERROR_PROCESS            = 1<<4,  /*!< Frame error process. */
@@ -60,6 +60,7 @@ typedef enum
     EV_MASTER_ERROR_RECEIVE_DATA       = 1<<7,  /*!< Request receive data error. */
     EV_MASTER_ERROR_EXECUTE_FUNCTION   = 1<<8,  /*!< Request execute function error. */
 	EV_MASTER_EXECUTE_ISR              = 1<<9,  /*!< Execute function. */
+	EV_MASTER_ERROR_PROCESS_ISR        = 1<<10,
 } eMBMasterEventType;
 
 typedef enum

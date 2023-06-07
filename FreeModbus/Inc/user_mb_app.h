@@ -1,7 +1,9 @@
 #ifndef    USER_APP
 #define USER_APP
 /* ----------------------- Modbus includes ----------------------------------*/
+#ifdef SLAVE_MODE
 #include "mb.h"
+#endif
 #include "mb_m.h"
 #include "mbconfig.h"
 #include "mbframe.h"
@@ -28,14 +30,14 @@
 #define          S_DI_RESERVE                     0
 
 /* -----------------------Master Defines -------------------------------------*/
-#define M_DISCRETE_INPUT_START        0
-#define M_DISCRETE_INPUT_NDISCRETES   16
-#define M_COIL_START                  0
-#define M_COIL_NCOILS                 64
-#define M_REG_INPUT_START             0
-#define M_REG_INPUT_NREGS             100
-#define M_REG_HOLDING_START           0
-#define M_REG_HOLDING_NREGS           100
+#define M_DISCRETE_INPUT_START        DEVICE_DINPUT_START
+#define M_DISCRETE_INPUT_NDISCRETES   DEVICE_DINPUT
+#define M_COIL_START                  DEVICE_COIL_START
+#define M_COIL_NCOILS                 DEVICE_COIL
+#define M_REG_INPUT_START             DEVICE_INPUT_START
+#define M_REG_INPUT_NREGS             DEVICE_INPUT
+#define M_REG_HOLDING_START           DEVICE_HOLDING_START
+#define M_REG_HOLDING_NREGS           DEVICE_HOLDING
 /* master mode: holding register's all address */
 #define          M_HD_RESERVE                     0
 /* master mode: input register's all address */

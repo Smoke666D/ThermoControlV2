@@ -259,6 +259,7 @@ void vADCReady()
 //volatile float temp1;
 volatile uint16_t ddata;
 uint16_t config_temp;
+uint8_t error_flag = 0;
 	  uint16_t temp = 0;
 	  uint8_t init_timer = 0;
 	  xSystemEventGroupHandle =  xGetSystemControlEvent();
@@ -266,7 +267,7 @@ uint16_t config_temp;
 	  for(;;)
 	  {
 #ifdef MASTER_MODE
-		  if (usGetRegInput(ERROR_STATUS) &  AIR_TEMP_ERROR )
+		 if (usGetRegInput(ERROR_STATUS) &  AIR_TEMP_ERROR )
 		  {
 		  	   timeout = 500;
 		  }
@@ -282,7 +283,7 @@ uint16_t config_temp;
 		  	  {
 		  	    timer = 0U;
 		  	     HAL_GPIO_TogglePin( LED_G_GPIO_Port, LED_G_Pin);
-		  	     HAL_GPIO_TogglePin( LED_R_GPIO_Port, LED_R_Pin);
+		  	     HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, HAL_GPIO_ReadPin( LED_G_GPIO_Port, LED_G_Pin));
 		  	  }
 		  }
 		  else
@@ -296,24 +297,24 @@ uint16_t config_temp;
 		  	    {
 		  	    	if (usGetRegInput(TYPE) == HWC)
 		  	    	{
-		  	    		HAL_GPIO_WritePin( LED_G_GPIO_Port, LED_G_Pin, (usGetReg(MODE) != AUTO_MODE) ? GPIO_PIN_SET: GPIO_PIN_RESET);
-		  	    		HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, (usGetReg(MODE) != AUTO_MODE) ? GPIO_PIN_RESET: GPIO_PIN_SET);
+		  	    		HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, (usGetReg(MODE) != 1) ? GPIO_PIN_SET: GPIO_PIN_RESET);
+		  	    		HAL_GPIO_WritePin( LED_G_GPIO_Port, LED_G_Pin, (usGetReg(MODE) != 1) ? GPIO_PIN_RESET: GPIO_PIN_SET);
 		  	    	}
 		  	    	else
 		  	    	{
-		  	    		HAL_GPIO_WritePin( LED_G_GPIO_Port, LED_G_Pin, GPIO_PIN_SET);
-		  	    		if ((usGetReg(MODE) == AUTO_MODE))
+		  	    		HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET);
+		  	    		if ((usGetReg(MODE) == 1))
 		  	    		{
 		  	    			//timerR++;
 		  	    			if (++timerR>=500)
 		  	    			{
 		  	    				   timerR =0;
-		  	    				   HAL_GPIO_TogglePin( LED_R_GPIO_Port, LED_R_Pin);
+		  	    				   HAL_GPIO_TogglePin( LED_G_GPIO_Port, LED_G_Pin);
 		  	    			 }
 		  	    	     }
 		  	    		 else
 		  	    		 {
-		  	    			HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin,(usGetReg(WORK_TEMP) < usGetReg(AIR_TEMP)) ? GPIO_PIN_SET :GPIO_PIN_RESET  );
+		  	    			HAL_GPIO_WritePin( LED_G_GPIO_Port, LED_G_Pin,(usGetReg(WORK_TEMP) < usGetReg(AIR_TEMP)) ? GPIO_PIN_SET :GPIO_PIN_RESET  );
 
 		  	    		}
 		  	    	}
@@ -369,6 +370,8 @@ uint16_t config_temp;
 			vSetReg(DEVICE_TYPE,  (uiGetDinMask() & DEVICE_MODE_MASK)>>DEVICE_MODE_OFFSET );
 			vSetReg(DEVICE_COUNT, (uiGetDinMask() & DEVICE_ADDR_MASK)>>DEVICE_ADDR_OFFSET);
 			vSetReg(CONTROL_MODE, (uiGetDinMask() & DEVICE_MASTER_CONTROL_MASK)>>DEVICE_MASTER_CONTROL_OFFSET);
+			vSetReg(ERROR_MASTER_STATUS, (uiGetDinMask() & DEVICE_MASTER_TEMP_MASK)>>DEVICE_MASTER_TEMP_OFFSET);
+
 			ADC_RAW[0] = vRCFilter(ADC_RAW[0], &ADC_OLD_RAW[0]);
 			config_temp = ADC_RAW[0];
 			if (config_temp <150)
@@ -383,13 +386,23 @@ uint16_t config_temp;
 			vSetReg(MODE,(uiGetDinMask() & DEVICE_TYPE_MASK)>>DEVICE_TYPE_OFFSET);
 			vSetReg(FAN_SPEED_CONFIG,(uiGetDinMask() & DEVICE_FAN_MASK)>>DEVICE_FAN_OFFSET);
 			temp = vAinGetData(AIN_3);
+			error_flag = 0;
 			if  ((temp>=35000) || (temp <3500))
 			{
+				if ( usGetReg(ERROR_MASTER_STATUS) )
+				{
+					vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) | AIR_TEMP_ERROR);
+					error_flag = 1;
+			    }
+
 				temp = vAinGetData(AIN_2);
 				if  ((temp<35000) && (temp >3500))
 				{
 					vSetReg(AIR_TEMP, (uint16_t)fGetAinCalData(AIN_2,temp));
-					vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) & ~AIR_TEMP_ERROR);
+					if (error_flag ==0)
+					{
+						vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) & ~AIR_TEMP_ERROR);
+					}
 				}
 				else
 				{

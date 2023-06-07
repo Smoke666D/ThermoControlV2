@@ -27,6 +27,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 typedef StaticTask_t osStaticThreadDef_t;
+typedef StaticSemaphore_t osStaticSemaphoreDef_t;
 typedef StaticEventGroup_t osStaticEventGroupDef_t;
 /* USER CODE BEGIN PTD */
 
@@ -86,11 +87,11 @@ const osThreadAttr_t UARTTask_attributes = {
   .cb_size = sizeof(UARTTaskControlBlock),
   .stack_mem = &UARTTaskBuffer[0],
   .stack_size = sizeof(UARTTaskBuffer),
-  .priority = (osPriority_t) osPriorityNormal,
+  .priority = (osPriority_t) osPriorityAboveNormal,
 };
 /* Definitions for DataTask */
 osThreadId_t DataTaskHandle;
-uint32_t DataTaskBuffer[ 128 ];
+uint32_t DataTaskBuffer[ 256 ];
 osStaticThreadDef_t DataTaskControlBlock;
 const osThreadAttr_t DataTask_attributes = {
   .name = "DataTask",
@@ -110,7 +111,15 @@ const osThreadAttr_t MBTask_attributes = {
   .cb_size = sizeof(MBTaskControlBlock),
   .stack_mem = &MBTaskBuffer[0],
   .stack_size = sizeof(MBTaskBuffer),
-  .priority = (osPriority_t) osPriorityNormal,
+  .priority = (osPriority_t) osPriorityHigh,
+};
+/* Definitions for mbSem */
+osSemaphoreId_t mbSemHandle;
+osStaticSemaphoreDef_t mbSemControlBlock;
+const osSemaphoreAttr_t mbSem_attributes = {
+  .name = "mbSem",
+  .cb_mem = &mbSemControlBlock,
+  .cb_size = sizeof(mbSemControlBlock),
 };
 /* Definitions for xOSEvent */
 osEventFlagsId_t xOSEventHandle;
@@ -149,6 +158,11 @@ EventGroupHandle_t xGetOSEvent()
  {
 	 return (xSystemControlEventHandle);
  }
+ osSemaphoreId_t xGetSystemSem()
+ {
+ return (mbSemHandle);
+ }
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -177,8 +191,17 @@ void vTimerInit(uint16_t timeout)
 	htim2.Init.Period = timeout;
     if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
 	{
-	   Error_Handler();
+	  Error_Handler();
 	}
+#ifdef MASTER_MODE
+    htim4.Init.Prescaler = 3200;
+    htim4.Init.Period =20;
+        if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
+    	{
+    	  Error_Handler();
+    	}
+
+#endif
 }
 void vStartTimer()
 {
@@ -190,24 +213,34 @@ void vStopTimer()
 {
 	HAL_TIM_Base_Stop_IT(&htim2);
 }
-
+uint16_t timer_res = 0;
+static uint16_t respond_timeout = 0;
 void vRespondInit(int16_t timeout)
 {
-	htim4.Init.Period = timeout*2;
-	    if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
-		{
-		   Error_Handler();
-		}
+	HAL_TIM_Base_Stop_IT(&htim4);
+	respond_timeout =timeout;
+	timer_res = 0;
 }
 void vStartRespond()
 {
 	HAL_TIM_Base_Stop_IT(&htim4);
 	htim4.Instance->CNT=0;
+	timer_res = 0;
 	HAL_TIM_Base_Start_IT(&htim4);
 }
 void vStopRespond()
 {
+	timer_res = 0;
 	HAL_TIM_Base_Stop_IT(&htim4);
+}
+
+void vResHeandler()
+{
+	if (++timer_res == respond_timeout)
+	{
+			timer_res = 0;
+			prvvTIMERExpiredISR();
+	}
 }
 /* USER CODE END 0 */
 
@@ -255,6 +288,10 @@ int main(void)
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
+
+  /* Create the semaphores(s) */
+  /* creation of mbSem */
+  mbSemHandle = osSemaphoreNew(1, 1, &mbSem_attributes);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
@@ -330,13 +367,12 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL8;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI_DIV2;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL16;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -560,7 +596,7 @@ static void MX_TIM4_Init(void)
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim4.Init.Period = 2000;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
   {
     Error_Handler();
@@ -570,7 +606,7 @@ static void MX_TIM4_Init(void)
   {
     Error_Handler();
   }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
   {
@@ -598,7 +634,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 38400;
+  huart1.Init.BaudRate = 115200;
   huart1.Init.WordLength = UART_WORDLENGTH_9B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_ODD;
@@ -731,11 +767,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		 rvvTIMERExpiredISR();
 	  }
 #endif
-#ifdef MASTER_MODE
-	 if ((htim->Instance == TIM2) || (htim->Instance == TIM4))  {
-	 prvvTIMERExpiredISR();
-	 }
-#endif
+
+
+
+
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM1) {
     HAL_IncTick();

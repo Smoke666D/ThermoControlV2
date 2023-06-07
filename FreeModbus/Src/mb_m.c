@@ -289,11 +289,11 @@ eMBMasterPoll( void )
     {
         switch ( eEvent )
         {
-        case EV_MASTER_READY:
+        case EV_MASTER_READY_ISR:
             eMBState = STATE_ESTABLISHED;
             break;
 
-        case EV_MASTER_FRAME_RECEIVED:
+        case EV_MASTER_FRAME_RECEIVED_ISR:
             eStatus = peMBMasterFrameReceiveCur( &ucRcvAddress, &ucMBFrame, &usLength );
             /* Check if the frame is for us. If not ,send an error process event. */
             if ( ( eStatus == MB_ENOERR ) && ( ucRcvAddress == ucMBMasterGetDestAddress() ) )

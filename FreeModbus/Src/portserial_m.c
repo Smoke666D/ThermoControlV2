@@ -45,6 +45,16 @@ static uint8_t rx_data;
 /* serial transmit event */
 #define EVENT_SERIAL_TRANS_START    (1<<0)
 
+
+static void vReviceEnable()
+{
+	HAL_GPIO_WritePin(GPIOA,EN_Pin,GPIO_PIN_RESET);
+
+}
+static void vTransmitEnable()
+{
+	HAL_GPIO_WritePin(GPIOA,EN_Pin,GPIO_PIN_SET);
+}
 /* ----------------------- static functions ---------------------------------*/
 //static void prvvUARTTxReadyISR(void);
 //static void prvvUARTRxISR(void);
@@ -112,14 +122,16 @@ void vMBMasterPortSerialEnable(BOOL xRxEnable, BOOL xTxEnable)
     if (xRxEnable)
     {
     	HAL_UART_Receive_IT(&huart1,&rx_data_buf,1);
-        HAL_HalfDuplex_EnableReceiver(&huart1);
+
         /* enable RX interrupt */
    //     serial->ops->control(serial, RT_DEVICE_CTRL_SET_INT, (void *)RT_DEVICE_FLAG_INT_RX);
         /* switch 485 to receive mode */
   //      rt_pin_write(MODBUS_MASTER_RT_CONTROL_PIN_INDEX, PIN_LOW);
+        vReviceEnable();
     }
     else
     {
+    	vTransmitEnable();
     	HAL_UART_AbortReceive_IT(&huart1);
         /* switch 485 to transmit mode */
     //    rt_pin_write(MODBUS_MASTER_RT_CONTROL_PIN_INDEX, PIN_HIGH);
@@ -129,7 +141,7 @@ void vMBMasterPortSerialEnable(BOOL xRxEnable, BOOL xTxEnable)
     if (xTxEnable)
     {
         /* start serial transmit */
-    	HAL_HalfDuplex_EnableTransmitter(&huart1);
+
     	xEventGroupSetBits(xSerialEventGroupHandle,EVENT_SERIAL_TRANS_START);
        // rt_event_send(&event_serial, EVENT_SERIAL_TRANS_START);
     }
@@ -191,12 +203,13 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 
 
 
-void StartUARTask(void *argument)
+void StartUARTTask(void *argument)
 {
 	  EventBits_t uxBits;
+	  xSerialEventGroupHandle = xGetUARTEvent();
 	  while(1)
 	  {
-		  uxBits = xEventGroupWaitBits( xSerialEventGroupHandle,  EVENT_SERIAL_TRANS_START,  pdTRUE, pdFALSE, portMAX_DELAY );
+		  uxBits = xEventGroupWaitBits( xSerialEventGroupHandle,  EVENT_SERIAL_TRANS_START,  pdTRUE, pdTRUE, portMAX_DELAY );
 		  switch (uxBits)
 		  {
 		  	  	  case EVENT_SERIAL_TRANS_START:
@@ -215,7 +228,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	rx_data = rx_data_buf;
 	HAL_UART_Receive_IT(&huart1,&rx_data_buf,1);
-	 pxMBMasterFrameCBByteReceived();
+	pxMBMasterFrameCBByteReceived();
 }
 
 #endif
@@ -262,5 +275,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
  //   prvvUARTRxISR();
  //   return RT_EOK;
 //}
+
 
 #endif

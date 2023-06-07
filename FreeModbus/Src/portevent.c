@@ -73,7 +73,20 @@ xMBPortEventPost( eMBEventType eEvent )
 	    case EV_EXECUTE:
 
 	    case EV_FRAME_SENT:
-	    	xEventGroupSetBits(xSlaveOsEventGroupHandle,eEvent);
+	    	xHigherPriorityTaskWoken = pdFALSE;
+	    	xResult =xEventGroupSetBitsFromISR(
+ 	 	 	 	 	 xSlaveOsEventGroupHandle,   /* The event group being updated. */
+					 eEvent , /* The bits being set. */
+                 &xHigherPriorityTaskWoken );
+	    	 if( xResult != pdFAIL )
+	    		    		  {
+	    		    		      /* If xHigherPriorityTaskWoken is now set to pdTRUE then a context
+	    		    		      switch should be requested.  The macro used is port specific and will
+	    		    		      be either portYIELD_FROM_ISR() or portEND_SWITCHING_ISR() - refer to
+	    		    		      the documentation page for the port being used. */
+	    		    		      portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+	    		    		  }
+	    		//	xEventGroupSetBits(xSlaveOsEventGroupHandle,eEvent);
 	        break;
 	    }
 
