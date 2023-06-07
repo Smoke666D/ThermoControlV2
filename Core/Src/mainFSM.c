@@ -680,9 +680,11 @@ static void vSlaveControlFSM()
  }
 #endif
 #ifdef MASTER_MODE
-uint8_t mster_control_addres =0;
+uint8_t mster_control_addres =1;
+uint8_t con_err_count = 0;
 uint8_t datatemp = 0;
 eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
+uint8_t mastersendFSM = 0;
 void vMasterControlFSM()
 {
 
@@ -717,37 +719,74 @@ void vMasterControlFSM()
 	data[3]=usGetReg(AIR_TEMP);
 
 	data[0]= datatemp;
- 	eMBMasterReqWriteMultipleHoldingRegister( 0, 13, 4, &data[0], 0);
 
-	if (  usGetReg( CONTROL_MODE )  )
-	{
-		mster_control_addres++;
-		if ( mster_control_addres > usGetReg( DEVICE_COUNT ) )
-		{
-			mster_control_addres = 1;
-			connection_error = 0;
-		}
 
-		if (++datatemp ==100)
-		{
-			datatemp = 0;
-		}
-		//vTaskDelay(100);
-	//	errorCode = eMBMasterReqWriteHoldingRegister( mster_control_addres, 12, 1, 0 );
-		//vTaskDelay(500);
-		if ( errorCode == MB_MRE_TIMEDOUT )
+	switch (mastersendFSM)
 	{
-			connection_error = 1;
-		}
-		else
-		{
-			connection_error = 0;
-		}
+			case 0:
+				errorCode = eMBMasterReqWriteMultipleHoldingRegister( 0, 13, 4, &data[0], 0);
+				if (errorCode==MB_MRE_NO_ERR)
+				{
+					if (++datatemp ==100)
+					{
+						datatemp = 0;
+					}
+					mastersendFSM = 1;
+				}
+				break;
+			case 1:
+				if (  usGetReg( CONTROL_MODE )  )
+				{
+
+					errorCode = eMBMasterReqReadInputRegister( mster_control_addres, 12, 1, 0 );
+					switch (errorCode)
+					{
+					    case MB_MRE_TIMEDOUT:
+						case MB_MRE_REV_DATA:
+												con_err_count++;
+
+						case MB_MRE_NO_ERR:
+												mster_control_addres++;
+												if ( mster_control_addres > usGetReg( DEVICE_COUNT ) )
+												{
+													mster_control_addres = 1;
+													if (con_err_count == 0)
+													connection_error = 0;
+													else
+														connection_error = 1;
+													con_err_count = 0;
+												}
+												mastersendFSM = 0;
+												break;
+
+						default:
+							break;
+
+					}
+				}
+				else
+				{
+					mastersendFSM = 0;
+				}
+				break;
+
+	}
+
+
+
+
+
+
+
+
+
+
+
 //
 		//errorCode= MB_MRE_NO_ERR;
 
 
-	}
+
 	//else
 	//{*/
 	//	connection_error = 0;

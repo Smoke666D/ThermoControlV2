@@ -213,6 +213,8 @@ void vStopTimer()
 {
 	HAL_TIM_Base_Stop_IT(&htim2);
 }
+
+#ifdef MASTER_MODE
 uint16_t timer_res = 0;
 static uint16_t respond_timeout = 0;
 void vRespondInit(int16_t timeout)
@@ -242,6 +244,7 @@ void vResHeandler()
 			prvvTIMERExpiredISR();
 	}
 }
+#endif
 /* USER CODE END 0 */
 
 /**
