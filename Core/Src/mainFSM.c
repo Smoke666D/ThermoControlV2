@@ -16,6 +16,29 @@
 
 static EventGroupHandle_t xSystemEventGroupHandle;
 static uint8_t mode_restart = 0;
+#ifdef MASTER_MODE
+	static uint8_t mster_control_addres = 1;
+	static uint8_t con_err_count = 0;
+	static uint8_t sens_err_count = 0;
+	static MASTER_STATE mastersendFSM = BROADCAST_SEND;
+	CONECT_ERROR_TYPE connection_error = 0;
+	static resisror_errors_t NetStatus[ MAX_SLAVE];
+	static uint8_t Dev_Type_Error_Counter = 0;
+	CONECT_ERROR_TYPE usGetConnection()
+	{
+		return (connection_error);
+	}
+	static TYPE_ERROR_TYPE dev_type_error = 0;
+	TYPE_ERROR_TYPE eGetTypeError()
+	{
+		return (dev_type_error);
+	}
+	static SENSOR_ERROR_TYPE sens_error;
+	SENSOR_ERROR_TYPE eGetSensError()
+	{
+		return (sens_error);
+	}
+#endif
 #ifdef SLAVE_MODE
 static void vSlaveControlFSM();
 #endif
@@ -41,7 +64,9 @@ void resetHWInitFlag( uint32_t flag)
 
 }
 
-uint8_t connection_error = 0;
+
+
+uint8_t temp_error = 0;
 static  FAN_SPEED_t current_fan_speed = FAN_SPEED_OFF;
 static VALVE_STATE_t  valve_state = VALVE_OFF;
 static control_flsm_t control_state = INIT_STATE;
@@ -54,10 +79,7 @@ uint16_t system_regs[REG_COUNT ];
 #endif
 uint8_t connection;
 
-uint8_t usGetConnection()
-{
-	return connection_error;
-}
+
 /*REGS_t
  *
  */
@@ -110,7 +132,9 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 
  void vMBTask(void *argument)
  {
+#ifdef SLAVE_MODE
 	 uint16_t addres = 0;
+#endif
 	 waitFlag( DIN_READY );
 
 #ifdef SLAVE_MODE
@@ -127,7 +151,7 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 	 {
 
 #ifdef SLAVE_MODE
-		 vTaskDelay(1);
+		// vTaskDelay(1);
 		 eMBPoll();
 #endif
 #ifdef MASTER_MODE
@@ -165,11 +189,14 @@ static void vSetPWM( uint16_t pwm)
 		}
 	}
 }
-#endif
+
 
 static uint16_t timeout = 0;
 static uint16_t timer = 0;
 static uint16_t timerR = 0;
+#endif
+
+
 
  static void DOUT_PROCESS()
  {
@@ -273,7 +300,12 @@ void vDATATask(void *argument)
  {
    //Инициализация типа системы
 #ifdef MASTER_MODE
-	uint16_t master_delay = 0;
+	//uint16_t master_delay = 0;
+	for (uint8_t i = 0; i < MAX_SLAVE;i++)
+	{
+		NetStatus[i].SensorError = 0;
+		NetStatus[i].ConnectionError = 0;
+	}
 #endif
 	MAIN_FSM_STATE_t InitFSM = STANDBAY_STATE;
     uint16_t error;
@@ -680,14 +712,14 @@ static void vSlaveControlFSM()
  }
 #endif
 #ifdef MASTER_MODE
-uint8_t mster_control_addres =1;
-uint8_t con_err_count = 0;
-uint8_t datatemp = 0;
-eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
-uint8_t mastersendFSM = 0;
+
+
+
 void vMasterControlFSM()
 {
-
+	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
+    uint16_t mode;
+    uint16_t errors;
 	uint16_t data[4];
     switch(usGetReg(MODE) )
     {
@@ -714,54 +746,63 @@ void vMasterControlFSM()
 			data[1] = FAN_SPEED_MAX;
 			break;
 	}
-
 	data[2]=usGetReg(WORK_TEMP);
 	data[3]=usGetReg(AIR_TEMP);
-
-	data[0]= datatemp;
-
 
 	switch (mastersendFSM)
 	{
 			case 0:
-				errorCode = eMBMasterReqWriteMultipleHoldingRegister( 0, 13, 4, &data[0], 0);
-				if (errorCode==MB_MRE_NO_ERR)
-				{
-					if (++datatemp ==100)
-					{
-						datatemp = 0;
-					}
-					mastersendFSM = 1;
-				}
+				mastersendFSM =  ( eMBMasterReqWriteMultipleHoldingRegister( 0, 13, 4, &data[0], 0)  == MB_MRE_NO_ERR )  ?  ADRESS_SEND : BROADCAST_SEND;
 				break;
 			case 1:
 				if (  usGetReg( CONTROL_MODE )  )
 				{
 
-					errorCode = eMBMasterReqReadInputRegister( mster_control_addres, 12, 1, 0 );
+					errorCode = eMBMasterReqReadInputRegister( mster_control_addres, 5, 8, 0 );
 					switch (errorCode)
 					{
+						case MB_MRE_NO_REG:                  /*!< illegal register address. */
+						case MB_MRE_ILL_ARG:                 /*!< illegal argument. */
+						case MB_MRE_EXE_FUN:
 					    case MB_MRE_TIMEDOUT:
 						case MB_MRE_REV_DATA:
-												con_err_count++;
-
+							  	  	  	NetStatus[mster_control_addres].ConnectionError++;
 						case MB_MRE_NO_ERR:
-												mster_control_addres++;
-												if ( mster_control_addres > usGetReg( DEVICE_COUNT ) )
-												{
-													mster_control_addres = 1;
-													if (con_err_count == 0)
-													connection_error = 0;
-													else
-														connection_error = 1;
-													con_err_count = 0;
+									    if ( errorCode == MB_MRE_NO_ERR)
+									    {
+									    	NetStatus[mster_control_addres].ConnectionError = 0;
+											mode =   usGetInput( mster_control_addres-1, 0 );
+											errors = usGetInput( mster_control_addres-1, 7 );
+											if  ( mode !=  usGetReg(DEVICE_TYPE)) Dev_Type_Error_Counter++;
+											if   ( (mode == HW) || (mode == TELEMETRY ) )
+											{
+												if ( errors & AIR_TEMP_ERROR ) sens_err_count++;
+											}
+										    if ( errors & WATER_TEMP_ERROR ) sens_err_count++;
+										}
+											  //Порверяем счетчик ошибок подключения
+											  if ( NetStatus[mster_control_addres].ConnectionError  >= MAX_CONNECTION_ERROR)
+											  {
+												  //Если счетчик переполнее, то устанваливаем его на значение срабатывания, чтобы он не переполнился
+												  NetStatus[mster_control_addres].ConnectionError = MAX_CONNECTION_ERROR;
+												  //Устанавливаем флаг ошибок подлючения
+												  con_err_count++;
+											  }
+											  if ( ++mster_control_addres > usGetReg( DEVICE_COUNT ) )
+											  {
+												   mster_control_addres = 1;
+												   connection_error = (con_err_count == 0) ? NO_CONNECTION_ERROR : CONNECTION_ERROR_PERESENT;
+												   con_err_count = 0;
+												   dev_type_error = ( Dev_Type_Error_Counter != 0 ) ? TYPE_ERROR : NO_TYPE_ERROR;
+												   Dev_Type_Error_Counter = 0;
+												   sens_error = (sens_err_count!= 0) ? SENSOR_ERROR : NO_SENSOR_ERROR;
+												   sens_err_count = 0;
 												}
-												mastersendFSM = 0;
+												mastersendFSM = BROADCAST_SEND;
 												break;
-
 						default:
-							break;
 
+							break;
 					}
 				}
 				else
@@ -769,28 +810,6 @@ void vMasterControlFSM()
 					mastersendFSM = 0;
 				}
 				break;
-
 	}
-
-
-
-
-
-
-
-
-
-
-
-//
-		//errorCode= MB_MRE_NO_ERR;
-
-
-
-	//else
-	//{*/
-	//	connection_error = 0;
-
-	//}
 }
 #endif

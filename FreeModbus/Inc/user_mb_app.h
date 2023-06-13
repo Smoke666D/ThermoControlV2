@@ -49,5 +49,5 @@
 
 void vMVRegInputWrite( uint16_t usData, uint16_t usAddress);
 uint16_t vMVRegInputRead(  uint16_t usAddress);
-
+uint16_t usGetInput( uint16_t addr, uint16_t offset);
 #endif

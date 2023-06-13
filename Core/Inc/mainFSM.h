@@ -16,6 +16,8 @@
 
 
 #define MASTER_MODE
+
+
 //#define SLAVE_MODE
 
  void vMainFSM(void *argument);
@@ -110,6 +112,8 @@ typedef enum
 #define SPEED_3_HW_SWITCH_TEMP_DELTA 6
 #define SPEED_2_HW_SWITCH_TEMP_DELTA 4
 #define SPEED_1_HW_SWITCH_TEMP_DELTA 2
+
+
  typedef enum
  {
    TYPE = 0,
@@ -149,6 +153,44 @@ typedef enum
 } MAIN_FSM_STATE_t;
 
 
+#ifdef MASTER_MODE
+
+#define LED_DELAY 250
+#define MAX_SLAVE  15
+#define MAX_CONNECTION_ERROR 20
+
+typedef enum
+{
+ CONNECTION_ERROR_PERESENT,
+ NO_CONNECTION_ERROR,
+} CONECT_ERROR_TYPE;
+
+typedef enum
+{
+	TYPE_ERROR,
+	NO_TYPE_ERROR,
+} TYPE_ERROR_TYPE;
+
+typedef enum
+{
+	SENSOR_ERROR,
+	NO_SENSOR_ERROR,
+} SENSOR_ERROR_TYPE;
+
+typedef struct
+{
+	uint8_t SensorError;
+	uint8_t ConnectionError;
+} resisror_errors_t;
+
+
+typedef enum
+{
+   BROADCAST_SEND,
+   ADRESS_SEND,
+} MASTER_STATE;
+#endif
+
  typedef enum
  {
 	 AW = 1,
@@ -187,6 +229,10 @@ SemaphoreHandle_t xGetSystemSem();
 uint16_t usGetReg( REGS_t reg_addr);
 void vSetReg(REGS_t reg_addr, uint16_t data);
 uint16_t usGetRegInput( REGS_t reg_addr);
-uint8_t usGetConnection();
+#ifdef MASTER_MODE
+	CONECT_ERROR_TYPE usGetConnection();
+	SENSOR_ERROR_TYPE eGetSensError();
+	TYPE_ERROR_TYPE eGetTypeError();
+#endif
 void vSetRegInput(REGS_t reg_addr, uint16_t data);
 #endif /* SRC_MAINFSM_H_ */

@@ -130,9 +130,9 @@ static EventGroupHandle_t xSystemEventGroupHandle;
 static uint8_t DataReadyFlag = 0;
 extern ADC_HandleTypeDef hadc1;
 #ifdef MASTER_MODE
-static uint16_t timeout = 0;
+static uint16_t timeoutR = 0;
+static uint16_t timeoutG = 0;
 static uint16_t timer = 0;
-static uint16_t timerR = 0;
 #endif
 
  uint16_t vRCFilter( uint16_t input,uint16_t * old_output);
@@ -254,73 +254,71 @@ void vADCReady()
 	 return;
 }
 
+static GPIO_PinState  ERROR_PIN_STATE = GPIO_PIN_RESET ;
+static GPIO_PinState RedLedState;
+static GPIO_PinState GreenLedState;
  void vDTask(void *argument)
  {
-//volatile float temp1;
-volatile uint16_t ddata;
+
+uint16_t timeout =0;
 uint16_t config_temp;
 uint8_t error_flag = 0;
-	  uint16_t temp = 0;
-	  uint8_t init_timer = 0;
-	  xSystemEventGroupHandle =  xGetSystemControlEvent();
-	  vDINInit();
+uint16_t temp = 0;
+uint8_t init_timer = 0;
+
+xSystemEventGroupHandle =  xGetSystemControlEvent();
+vDINInit();
 	  for(;;)
 	  {
 #ifdef MASTER_MODE
-		 if (usGetRegInput(ERROR_STATUS) &  AIR_TEMP_ERROR )
+		  timeoutG = 0;
+		  timeoutR = 0;
+		  timeout = 0;
+		  if ( eGetTypeError() == TYPE_ERROR)
 		  {
-		  	   timeout = 500;
+			  timeoutG = 1;
+			  timeout = 250;
 		  }
+		  if (usGetConnection() == CONNECTION_ERROR_PERESENT)
+		  {
+			  timeoutR = 1;
+			  timeout = 250;
+		  }
+		  if  ( (usGetRegInput(ERROR_STATUS) &  AIR_TEMP_ERROR ) ||  ( eGetSensError() == SENSOR_ERROR))
+		  {
+		 	  timeoutG = 1;
+		 	  timeoutR = 1;
+		 	  timeout = 500;
+		 }
+		  if (usGetReg(MODE) == OFF_MODE)
+		  {
+
+			  GreenLedState   = (timeoutG) ?  ERROR_PIN_STATE :GPIO_PIN_SET;
+		  		RedLedState   = (timeoutR) ?  ERROR_PIN_STATE :GPIO_PIN_SET;
+		  }
+
 		  else
 		  {
-			  timeout = usGetConnection() ? 250 : 0;
-
-		  }
-		  if ( timeout )
-		  {
-		  	 // timer++;
-		  	  if ( ++timer >= timeout )
+			  GreenLedState = (timeoutG) ?  ERROR_PIN_STATE : GPIO_PIN_RESET;
+		  	  if ((usGetRegInput(TYPE) ==  HWC) && (usGetReg(MODE)==1))
+		  	   {
+		  		  	RedLedState  = (timeoutG) ?  ERROR_PIN_STATE :  (usGetReg(WORK_TEMP) <= usGetReg(AIR_TEMP)) ? GPIO_PIN_RESET :GPIO_PIN_SET;
+		  	  }
+		  	  else
 		  	  {
-		  	    timer = 0U;
-		  	     HAL_GPIO_TogglePin( LED_G_GPIO_Port, LED_G_Pin);
-		  	     HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, HAL_GPIO_ReadPin( LED_G_GPIO_Port, LED_G_Pin));
+		  		  RedLedState  = (timeoutR) ?  ERROR_PIN_STATE : ((usGetReg(WORK_TEMP) > usGetReg(AIR_TEMP)) ? GPIO_PIN_RESET :GPIO_PIN_SET);
 		  	  }
 		  }
-		  else
+		  if ( ( timeoutG!=0 ) || ( timeoutR!=0 ))
 		  {
-		  	   if (usGetReg(MODE) == OFF_MODE)
-		  	   {
-		  		   HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_RESET );
-		  	       HAL_GPIO_WritePin( LED_G_GPIO_Port, LED_G_Pin, GPIO_PIN_RESET );
-		  	    }
-		  	    else
-		  	    {
-		  	    	if (usGetRegInput(TYPE) == HWC)
-		  	    	{
-		  	    		HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, (usGetReg(MODE) != 1) ? GPIO_PIN_SET: GPIO_PIN_RESET);
-		  	    		HAL_GPIO_WritePin( LED_G_GPIO_Port, LED_G_Pin, (usGetReg(MODE) != 1) ? GPIO_PIN_RESET: GPIO_PIN_SET);
-		  	    	}
-		  	    	else
-		  	    	{
-		  	    		HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GPIO_PIN_SET);
-		  	    		if ((usGetReg(MODE) == 1))
-		  	    		{
-		  	    			//timerR++;
-		  	    			if (++timerR>=500)
-		  	    			{
-		  	    				   timerR =0;
-		  	    				   HAL_GPIO_TogglePin( LED_G_GPIO_Port, LED_G_Pin);
-		  	    			 }
-		  	    	     }
-		  	    		 else
-		  	    		 {
-		  	    			HAL_GPIO_WritePin( LED_G_GPIO_Port, LED_G_Pin,(usGetReg(WORK_TEMP) < usGetReg(AIR_TEMP)) ? GPIO_PIN_SET :GPIO_PIN_RESET  );
-
-		  	    		}
-		  	    	}
-		  	     }
-		  	   }
-
+		  	  if ( ++timer >= timeout  )
+		  	  {
+		  	     timer = 0U;
+		  	     ERROR_PIN_STATE = ( ERROR_PIN_STATE== GPIO_PIN_RESET) ? GPIO_PIN_SET :GPIO_PIN_RESET;
+		  	  }
+		  }
+		  HAL_GPIO_WritePin( LED_G_GPIO_Port, LED_G_Pin, RedLedState);
+		  HAL_GPIO_WritePin( LED_R_GPIO_Port, LED_R_Pin, GreenLedState);
 #endif
 		    HAL_ADC_Start_DMA(&hadc1,&ADC1_DMABuffer[0], 9);
 		  	vTaskDelay(1);

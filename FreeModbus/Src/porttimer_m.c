@@ -39,8 +39,8 @@ static USHORT usT35TimeOut50us;
 BOOL xMBMasterPortTimersInit(USHORT usTimeOut50us)
 {
     /* backup T35 ticks */
-    usT35TimeOut50us = usTimeOut50us;
-    vTimerInit( usT35TimeOut50us);
+
+    vTimerInit( usTimeOut50us);
  /*   rt_timer_init(&timer, "master timer",
  //                  timer_timeout_ind, /* bind timeout callback function */
  //                  RT_NULL,
