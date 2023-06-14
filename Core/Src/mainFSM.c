@@ -33,7 +33,7 @@ static uint8_t mode_restart = 0;
 	{
 		return (dev_type_error);
 	}
-	static SENSOR_ERROR_TYPE sens_error;
+	static SENSOR_ERROR_TYPE sens_error =0;
 	SENSOR_ERROR_TYPE eGetSensError()
 	{
 		return (sens_error);
@@ -807,7 +807,14 @@ void vMasterControlFSM()
 				}
 				else
 				{
-					mastersendFSM = 0;
+					con_err_count = 0;
+					sens_err_count = 0;
+					Dev_Type_Error_Counter = 0;
+					mster_control_addres = 1;
+					mastersendFSM = BROADCAST_SEND;
+					sens_error = NO_SENSOR_ERROR;
+					dev_type_error = NO_TYPE_ERROR;
+					connection_error = NO_CONNECTION_ERROR;
 				}
 				break;
 	}

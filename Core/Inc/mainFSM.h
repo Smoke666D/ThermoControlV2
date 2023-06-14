@@ -15,10 +15,10 @@
 
 
 
-#define MASTER_MODE
+//#define MASTER_MODE
 
 
-//#define SLAVE_MODE
+#define SLAVE_MODE
 
  void vMainFSM(void *argument);
 
