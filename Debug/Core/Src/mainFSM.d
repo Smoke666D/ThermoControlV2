@@ -22,11 +22,12 @@ Core/Src/mainFSM.o: ../Core/Src/mainFSM.c ../Core/Inc/mainFSM.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_adc_ex.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h \
+ ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_iwdg.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
- ../Core/Inc/din_dout.h ../Core/Inc/mainFSM.h \
+ ../Core/Inc/mainFSM.h ../Core/Inc/ain.h ../Core/Inc/din_dout.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h \
  ../Core/Inc/FreeRTOSConfig.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h \
@@ -38,10 +39,12 @@ Core/Src/mainFSM.o: ../Core/Src/mainFSM.c ../Core/Inc/mainFSM.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h \
  ../FreeModbus/Inc/mb.h ../FreeModbus/Inc/port.h \
  ../FreeModbus/Inc/mbconfig.h ../FreeModbus/Inc/mbport.h \
  ../FreeModbus/Inc/mbproto.h ../FreeModbus/Inc/../Inc/user_mb_app.h \
- ../FreeModbus/Inc/../Inc/mb.h ../FreeModbus/Inc/../Inc/mb_m.h \
+ ../FreeModbus/Inc/../Inc/mb_m.h ../FreeModbus/Inc/../Inc/mb.h \
  ../FreeModbus/Inc/../Inc/mbconfig.h ../FreeModbus/Inc/../Inc/mbframe.h \
  ../FreeModbus/Inc/../Inc/mbutils.h ../Core/Inc/din_dout.h
 ../Core/Inc/mainFSM.h:
@@ -69,12 +72,14 @@ Core/Src/mainFSM.o: ../Core/Src/mainFSM.c ../Core/Inc/mainFSM.h \
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_adc_ex.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h:
+../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_iwdg.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
-../Core/Inc/din_dout.h:
 ../Core/Inc/mainFSM.h:
+../Core/Inc/ain.h:
+../Core/Inc/din_dout.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h:
 ../Core/Inc/FreeRTOSConfig.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h:
@@ -86,14 +91,16 @@ Core/Src/mainFSM.o: ../Core/Src/mainFSM.c ../Core/Inc/mainFSM.h \
 ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h:
 ../FreeModbus/Inc/mb.h:
 ../FreeModbus/Inc/port.h:
 ../FreeModbus/Inc/mbconfig.h:
 ../FreeModbus/Inc/mbport.h:
 ../FreeModbus/Inc/mbproto.h:
 ../FreeModbus/Inc/../Inc/user_mb_app.h:
-../FreeModbus/Inc/../Inc/mb.h:
 ../FreeModbus/Inc/../Inc/mb_m.h:
+../FreeModbus/Inc/../Inc/mb.h:
 ../FreeModbus/Inc/../Inc/mbconfig.h:
 ../FreeModbus/Inc/../Inc/mbframe.h:
 ../FreeModbus/Inc/../Inc/mbutils.h:

@@ -155,7 +155,7 @@ void vSetReg(REGS_t reg_addr, uint16_t data)
 		 eMBPoll();
 #endif
 #ifdef MASTER_MODE
-
+		 vTaskDelay(10);
 		 eMBMasterPoll(  );
 #endif
 	 }
@@ -179,7 +179,7 @@ static void vSetPWM( uint16_t pwm)
 	{
 		if (pwm != PWM_STATE)
 		{
-			 sConfigOC.OCMode = TIM_OCMODE_PWM1;
+			  sConfigOC.OCMode = TIM_OCMODE_PWM1;
 			  sConfigOC.Pulse = (pwm/100.0)*860;
 			  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 			  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
@@ -312,6 +312,7 @@ void vDATATask(void *argument)
 
 	 while(1)
 	 {
+		 vResetWDT();
 		 setHWInitFlag( PROCESS_DATA);
 		 vSetRegInput(FSM_STATUS, control_state);
 		 vTaskDelay(10);
@@ -713,14 +714,14 @@ static void vSlaveControlFSM()
 #endif
 #ifdef MASTER_MODE
 
-
+volatile uint16_t data[4];
 
 void vMasterControlFSM()
 {
 	eMBMasterReqErrCode    errorCode = MB_MRE_NO_ERR;
     uint16_t mode;
     uint16_t errors;
-	uint16_t data[4];
+
     switch(usGetReg(MODE) )
     {
     	case 0:
@@ -751,13 +752,12 @@ void vMasterControlFSM()
 
 	switch (mastersendFSM)
 	{
-			case 0:
+			case BROADCAST_SEND:
 				mastersendFSM =  ( eMBMasterReqWriteMultipleHoldingRegister( 0, 13, 4, &data[0], 0)  == MB_MRE_NO_ERR )  ?  ADRESS_SEND : BROADCAST_SEND;
 				break;
-			case 1:
+			case  ADRESS_SEND:
 				if (  usGetReg( CONTROL_MODE )  )
 				{
-
 					errorCode = eMBMasterReqReadInputRegister( mster_control_addres, 5, 8, 0 );
 					switch (errorCode)
 					{
@@ -801,7 +801,6 @@ void vMasterControlFSM()
 												mastersendFSM = BROADCAST_SEND;
 												break;
 						default:
-
 							break;
 					}
 				}

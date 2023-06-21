@@ -283,30 +283,32 @@ vDINInit();
 		  {
 			  timeoutR = 1;
 			  timeout = 250;
-		  }
+	     }
 		  if  ( (usGetRegInput(ERROR_STATUS) &  AIR_TEMP_ERROR ) ||  ( eGetSensError() == SENSOR_ERROR))
 		  {
 		 	  timeoutG = 1;
-		 	  timeoutR = 1;
+			  timeoutR = 1;
 		 	  timeout = 500;
 		 }
 		  if (usGetReg(MODE) == OFF_MODE)
 		  {
 
-			  GreenLedState   = (timeoutG) ?  ERROR_PIN_STATE :GPIO_PIN_SET;
-		  		RedLedState   = (timeoutR) ?  ERROR_PIN_STATE :GPIO_PIN_SET;
+			    GreenLedState   = (timeoutG) ?  ERROR_PIN_STATE :GPIO_PIN_RESET;
+		  		RedLedState   = (timeoutR) ?  ERROR_PIN_STATE :GPIO_PIN_RESET;
 		  }
 
 		  else
 		  {
-			  GreenLedState = (timeoutG) ?  ERROR_PIN_STATE : GPIO_PIN_RESET;
-		  	  if ((usGetRegInput(TYPE) ==  HWC) && (usGetReg(MODE)==1))
+			  GreenLedState = (timeoutG) ?  ERROR_PIN_STATE : GPIO_PIN_SET;
+
+		  	  if ((usGetRegInput(TYPE) ==  HWC))
 		  	   {
-		  		  	RedLedState  = (timeoutG) ?  ERROR_PIN_STATE :  (usGetReg(WORK_TEMP) <= usGetReg(AIR_TEMP)) ? GPIO_PIN_RESET :GPIO_PIN_SET;
+		  		  	RedLedState  = (timeoutR) ?  ERROR_PIN_STATE :  ( (usGetReg(MODE)==2)) ? GPIO_PIN_RESET :GPIO_PIN_SET;
+		  		    GreenLedState  = (timeoutG) ?  ERROR_PIN_STATE :  ( (usGetReg(MODE)==2)) ? GPIO_PIN_SET :GPIO_PIN_RESET;
 		  	  }
 		  	  else
 		  	  {
-		  		  RedLedState  = (timeoutR) ?  ERROR_PIN_STATE : ((usGetReg(WORK_TEMP) > usGetReg(AIR_TEMP)) ? GPIO_PIN_RESET :GPIO_PIN_SET);
+		  		    RedLedState  = (timeoutR) ?  ERROR_PIN_STATE : ((usGetReg(WORK_TEMP) > usGetReg(AIR_TEMP)) ? GPIO_PIN_SET :GPIO_PIN_RESET);
 		  	  }
 		  }
 		  if ( ( timeoutG!=0 ) || ( timeoutR!=0 ))

@@ -1,4 +1,4 @@
-mbrtu_m.c:87:1:eMBMasterRTUInit	3
+mbrtu_m.c:87:1:eMBMasterRTUInit	2
 mbrtu_m.c:131:1:eMBMasterRTUStart	1
 mbrtu_m.c:147:1:eMBMasterRTUStop	1
 mbrtu_m.c:156:1:eMBMasterRTUReceive	3

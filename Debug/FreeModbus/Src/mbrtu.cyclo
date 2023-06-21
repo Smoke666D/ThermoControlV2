@@ -1,4 +1,4 @@
-mbrtu.c:80:1:eMBRTUInit	3
+mbrtu.c:80:1:eMBRTUInit	2
 mbrtu.c:125:1:eMBRTUStart	1
 mbrtu.c:141:1:eMBRTUStop	1
 mbrtu.c:150:1:eMBRTUReceive	3

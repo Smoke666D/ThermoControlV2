@@ -15,10 +15,9 @@
 
 
 
-//#define MASTER_MODE
+#define MASTER_MODE
 
-
-#define SLAVE_MODE
+//#define SLAVE_MODE
 
  void vMainFSM(void *argument);
 
@@ -62,7 +61,7 @@
 #define  DEVICE_INPUT_START    ( DEVICE_COIL_START + DEVICE_COIL)
 #define  DEVICE_INPUT		   8
 #define  DEVICE_HOLDING_START  (DEVICE_INPUT_START + DEVICE_INPUT)
-#define  DEVICE_HOLDING        30
+#define  DEVICE_HOLDING        10
 #define  DEVICE_HOLDING_FLASG  7
 #define REG_COUNT 10
 
@@ -229,6 +228,7 @@ SemaphoreHandle_t xGetSystemSem();
 uint16_t usGetReg( REGS_t reg_addr);
 void vSetReg(REGS_t reg_addr, uint16_t data);
 uint16_t usGetRegInput( REGS_t reg_addr);
+void vResetWDT();
 #ifdef MASTER_MODE
 	CONECT_ERROR_TYPE usGetConnection();
 	SENSOR_ERROR_TYPE eGetSensError();

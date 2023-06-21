@@ -1,5 +1,4 @@
-../FreeModbus/Src/user_mb_app.c:47:6:vUPDATECoils	24	static
-../FreeModbus/Src/user_mb_app.c:80:14:eMBRegInputCB	16	static
-../FreeModbus/Src/user_mb_app.c:128:14:eMBRegHoldingCB	24	static
-../FreeModbus/Src/user_mb_app.c:195:14:eMBRegCoilsCB	40	static
-../FreeModbus/Src/user_mb_app.c:275:14:eMBRegDiscreteCB	32	static
+../FreeModbus/Src/user_mb_app.c:87:14:eMBRegInputCB	24	static
+../FreeModbus/Src/user_mb_app.c:135:14:eMBRegHoldingCB	24	static
+../FreeModbus/Src/user_mb_app.c:202:14:eMBRegCoilsCB	40	static
+../FreeModbus/Src/user_mb_app.c:282:14:eMBRegDiscreteCB	32	static

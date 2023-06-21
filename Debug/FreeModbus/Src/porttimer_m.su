@@ -1,5 +1,6 @@
 ../FreeModbus/Src/porttimer_m.c:39:6:xMBMasterPortTimersInit	8	static
 ../FreeModbus/Src/porttimer_m.c:53:6:vMBMasterPortTimersT35Enable	8	static
 ../FreeModbus/Src/porttimer_m.c:67:6:vMBMasterPortTimersConvertDelayEnable	8	static
-../FreeModbus/Src/porttimer_m.c:79:6:vMBMasterPortTimersRespondTimeoutEnable	8	static
-../FreeModbus/Src/porttimer_m.c:92:6:vMBMasterPortTimersDisable	8	static
+../FreeModbus/Src/porttimer_m.c:80:6:vMBMasterPortTimersRespondTimeoutEnable	8	static
+../FreeModbus/Src/porttimer_m.c:94:6:vMBMasterPortTimersDisable	8	static
+../FreeModbus/Src/porttimer_m.c:101:6:prvvTIMERExpiredISR	8	static

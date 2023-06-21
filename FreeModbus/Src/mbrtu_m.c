@@ -103,7 +103,7 @@ eMBMasterRTUInit(UCHAR ucPort, ULONG ulBaudRate, eMBParity eParity )
          */
       //  if( ulBaudRate > 19200 )
       //  {
-            usTimerT35_50us = 100;       /* 1800us. */
+            usTimerT35_50us = 35;       /* 1800us. */
        // }
       // else
        // {

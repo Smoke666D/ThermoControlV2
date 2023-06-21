@@ -1,5 +1,8 @@
-../FreeModbus/Src/portserial_m.c:55:6:xMBMasterPortSerialInit	16	static
-../FreeModbus/Src/portserial_m.c:109:6:vMBMasterPortSerialEnable	24	static
-../FreeModbus/Src/portserial_m.c:146:6:vMBMasterPortClose	0	static
-../FreeModbus/Src/portserial_m.c:151:6:xMBMasterPortSerialPutByte	16	static
-../FreeModbus/Src/portserial_m.c:158:6:xMBMasterPortSerialGetByte	0	static
+../FreeModbus/Src/portserial_m.c:65:6:xMBMasterPortSerialInit	16	static
+../FreeModbus/Src/portserial_m.c:119:6:vMBMasterPortSerialEnable	16	static
+../FreeModbus/Src/portserial_m.c:158:6:vMBMasterPortClose	0	static
+../FreeModbus/Src/portserial_m.c:163:6:xMBMasterPortSerialPutByte	16	static
+../FreeModbus/Src/portserial_m.c:170:6:xMBMasterPortSerialGetByte	0	static
+../FreeModbus/Src/portserial_m.c:180:6:HAL_UART_TxCpltCallback	16	static,ignoring_inline_asm
+../FreeModbus/Src/portserial_m.c:206:6:StartUARTTask	32	static
+../FreeModbus/Src/portserial_m.c:227:6:HAL_UART_RxCpltCallback	8	static
