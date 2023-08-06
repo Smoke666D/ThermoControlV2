@@ -1,2 +1,2 @@
-mbfuncdisc_m.c:71:1:eMBMasterReqReadDiscreteInputs	3
-mbfuncdisc_m.c:95:1:eMBMasterFuncReadDiscreteInputs	7
+../FreeModbus/Src/mbfuncdisc_m.c:71:1:eMBMasterReqReadDiscreteInputs	3
+../FreeModbus/Src/mbfuncdisc_m.c:95:1:eMBMasterFuncReadDiscreteInputs	7

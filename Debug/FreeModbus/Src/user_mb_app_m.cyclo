@@ -1,5 +1,5 @@
-user_mb_app_m.c:55:10:usGetInput	1
-user_mb_app_m.c:60:14:eMBMasterRegInputCB	5
-user_mb_app_m.c:107:14:eMBMasterRegHoldingCB	5
-user_mb_app_m.c:172:14:eMBMasterRegCoilsCB	6
-user_mb_app_m.c:252:14:eMBMasterRegDiscreteCB	5
+../FreeModbus/Src/user_mb_app_m.c:55:10:usGetInput	1
+../FreeModbus/Src/user_mb_app_m.c:60:14:eMBMasterRegInputCB	5
+../FreeModbus/Src/user_mb_app_m.c:107:14:eMBMasterRegHoldingCB	5
+../FreeModbus/Src/user_mb_app_m.c:172:14:eMBMasterRegCoilsCB	6
+../FreeModbus/Src/user_mb_app_m.c:252:14:eMBMasterRegDiscreteCB	5

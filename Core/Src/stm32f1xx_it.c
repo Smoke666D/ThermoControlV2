@@ -215,7 +215,7 @@ void TIM4_IRQHandler(void)
    vTimer1sInc();
 #endif
 #ifdef MASTER_MODE
-   vResHeandler();
+  // vResHeandler();
 #endif
   /* USER CODE END TIM4_IRQn 0 */
   HAL_TIM_IRQHandler(&htim4);

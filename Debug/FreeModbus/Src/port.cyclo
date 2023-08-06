@@ -1,2 +1,2 @@
-port.c:29:6:EnterCriticalSection	1
-port.c:34:6:ExitCriticalSection	1
+../FreeModbus/Src/port.c:29:6:EnterCriticalSection	1
+../FreeModbus/Src/port.c:34:6:ExitCriticalSection	1

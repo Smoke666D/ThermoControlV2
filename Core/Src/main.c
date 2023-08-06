@@ -812,9 +812,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	 if (htim->Instance == TIM2) {
 	 prvvTIMERExpiredISR();
 	 }
-	// if (htim->Instance == TIM4) {
-	//	 vResHeandler();
-	// }
+	if (htim->Instance == TIM4) {
+		 vResHeandler();
+	 }
 
 #endif
 

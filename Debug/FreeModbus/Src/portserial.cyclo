@@ -1,5 +1,5 @@
-portserial.c:67:6:xMBPortSerialInit	4
-portserial.c:125:6:vMBPortSerialEnable	3
-portserial.c:165:6:vMBPortClose	1
-portserial.c:170:6:xMBPortSerialPutByte	1
-portserial.c:179:6:xMBPortSerialGetByte	1
+../FreeModbus/Src/portserial.c:67:6:xMBPortSerialInit	4
+../FreeModbus/Src/portserial.c:125:6:vMBPortSerialEnable	3
+../FreeModbus/Src/portserial.c:165:6:vMBPortClose	1
+../FreeModbus/Src/portserial.c:170:6:xMBPortSerialPutByte	1
+../FreeModbus/Src/portserial.c:179:6:xMBPortSerialGetByte	1
