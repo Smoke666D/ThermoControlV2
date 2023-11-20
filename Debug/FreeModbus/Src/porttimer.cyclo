@@ -1,3 +1,4 @@
 ../FreeModbus/Src/porttimer.c:34:6:xMBPortTimersInit	1
 ../FreeModbus/Src/porttimer.c:47:6:vMBPortTimersEnable	1
 ../FreeModbus/Src/porttimer.c:53:6:vMBPortTimersDisable	1
+../FreeModbus/Src/porttimer.c:60:6:rvvTIMERExpiredISR	1

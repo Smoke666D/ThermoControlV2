@@ -3,6 +3,3 @@
 ../FreeModbus/Src/portserial_m.c:158:6:vMBMasterPortClose	1
 ../FreeModbus/Src/portserial_m.c:163:6:xMBMasterPortSerialPutByte	1
 ../FreeModbus/Src/portserial_m.c:170:6:xMBMasterPortSerialGetByte	1
-../FreeModbus/Src/portserial_m.c:180:6:HAL_UART_TxCpltCallback	3
-../FreeModbus/Src/portserial_m.c:206:6:StartUARTTask	2
-../FreeModbus/Src/portserial_m.c:227:6:HAL_UART_RxCpltCallback	1

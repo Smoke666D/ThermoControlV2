@@ -94,6 +94,8 @@ typedef struct DoutConfigDef_t
 {
 	uint8_t       state;
 	DOUT_OUT_TYPE eOutConfig;
+	uint8_t      old_state;
+	uint16_t     switch_on_delay;
 } DoutConfig_t;
 
 typedef struct DinConfigDef_t

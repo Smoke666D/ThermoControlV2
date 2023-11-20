@@ -44,7 +44,7 @@ Core/Src/mainFSM.o: ../Core/Src/mainFSM.c ../Core/Inc/mainFSM.h \
  ../FreeModbus/Inc/mb.h ../FreeModbus/Inc/port.h \
  ../FreeModbus/Inc/mbconfig.h ../FreeModbus/Inc/mbport.h \
  ../FreeModbus/Inc/mbproto.h ../FreeModbus/Inc/../Inc/user_mb_app.h \
- ../FreeModbus/Inc/../Inc/mb_m.h ../FreeModbus/Inc/../Inc/mb.h \
+ ../FreeModbus/Inc/../Inc/mb.h ../FreeModbus/Inc/../Inc/mb_m.h \
  ../FreeModbus/Inc/../Inc/mbconfig.h ../FreeModbus/Inc/../Inc/mbframe.h \
  ../FreeModbus/Inc/../Inc/mbutils.h ../Core/Inc/din_dout.h
 ../Core/Inc/mainFSM.h:
@@ -99,8 +99,8 @@ Core/Src/mainFSM.o: ../Core/Src/mainFSM.c ../Core/Inc/mainFSM.h \
 ../FreeModbus/Inc/mbport.h:
 ../FreeModbus/Inc/mbproto.h:
 ../FreeModbus/Inc/../Inc/user_mb_app.h:
-../FreeModbus/Inc/../Inc/mb_m.h:
 ../FreeModbus/Inc/../Inc/mb.h:
+../FreeModbus/Inc/../Inc/mb_m.h:
 ../FreeModbus/Inc/../Inc/mbconfig.h:
 ../FreeModbus/Inc/../Inc/mbframe.h:
 ../FreeModbus/Inc/../Inc/mbutils.h:

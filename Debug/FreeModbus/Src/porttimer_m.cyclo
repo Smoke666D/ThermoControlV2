@@ -3,4 +3,3 @@
 ../FreeModbus/Src/porttimer_m.c:67:6:vMBMasterPortTimersConvertDelayEnable	1
 ../FreeModbus/Src/porttimer_m.c:80:6:vMBMasterPortTimersRespondTimeoutEnable	1
 ../FreeModbus/Src/porttimer_m.c:94:6:vMBMasterPortTimersDisable	1
-../FreeModbus/Src/porttimer_m.c:101:6:prvvTIMERExpiredISR	1

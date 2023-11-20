@@ -146,6 +146,9 @@ void eOutConfig( uint8_t channel, DOUT_OUT_TYPE type)
 	if ( channel < DOUT_CHANNEL)
 	{
 		xDoutConfig[channel].eOutConfig = type;
+		xDoutConfig[channel].old_state = 0;
+		xDoutConfig[channel].state = 0;
+		xDoutConfig[channel].switch_on_delay = 0;
 	}
 }
 #endif
@@ -265,7 +268,9 @@ uint16_t config_temp;
 uint8_t error_flag = 0;
 uint16_t temp = 0;
 uint8_t init_timer = 0;
-
+uint16_t k1_timer = 0;
+uint16_t k2_timer = 0;
+uint16_t k3_timer = 0;
 xSystemEventGroupHandle =  xGetSystemControlEvent();
 vDINInit();
 	  for(;;)
@@ -339,7 +344,23 @@ vDINInit();
 #ifdef SLAVE_MODE
 			for (uint8_t i= 0U; i < DOUT_CHANNEL; i++)
 			{
-				HAL_GPIO_WritePin(xDoutPortConfig[i].GPIOx, xDoutPortConfig[i].Pin, xDoutConfig[i].state == 0 ? GPIO_PIN_RESET: GPIO_PIN_SET );
+				if (xDoutConfig[i].state == 0 )
+				{
+					HAL_GPIO_WritePin(xDoutPortConfig[i].GPIOx, xDoutPortConfig[i].Pin, GPIO_PIN_RESET);
+					xDoutConfig[i].old_state = 0;
+				}
+				else
+				{   if (xDoutConfig[i].old_state == 0)
+					{
+						if (++xDoutConfig[i].switch_on_delay > 1000 )
+						{
+							xDoutConfig[i].old_state = 1;
+							xDoutConfig[i].switch_on_delay = 0;
+						}
+					}
+					else
+						HAL_GPIO_WritePin(xDoutPortConfig[i].GPIOx, xDoutPortConfig[i].Pin, GPIO_PIN_SET );
+				}
 			}
 #endif
 			for (uint8_t i = 0U; i < DIN_CHANNEL; i++)

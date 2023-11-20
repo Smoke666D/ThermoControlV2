@@ -1,3 +1,5 @@
+../FreeModbus/Src/user_mb_app.c:49:6:vUPDATEDin	1
+../FreeModbus/Src/user_mb_app.c:54:6:vUPDATECoils	5
 ../FreeModbus/Src/user_mb_app.c:87:14:eMBRegInputCB	5
 ../FreeModbus/Src/user_mb_app.c:135:14:eMBRegHoldingCB	9
 ../FreeModbus/Src/user_mb_app.c:202:14:eMBRegCoilsCB	9

@@ -1,6 +1,4 @@
-../Core/Src/mainFSM.c:27:20:usGetConnection	0	static
-../Core/Src/mainFSM.c:32:18:eGetTypeError	0	static
-../Core/Src/mainFSM.c:37:20:eGetSensError	0	static
+../Core/Src/mainFSM.c:424:13:vSetState	0	static
 ../Core/Src/mainFSM.c:50:6:InitSystemEnvet	0	static
 ../Core/Src/mainFSM.c:54:6:waitFlag	16	static
 ../Core/Src/mainFSM.c:58:6:setHWInitFlag	0	static
@@ -9,5 +7,8 @@
 ../Core/Src/mainFSM.c:101:10:usGetRegInput	0	static
 ../Core/Src/mainFSM.c:108:6:vSetRegInput	0	static
 ../Core/Src/mainFSM.c:120:6:vSetReg	0	static
-../Core/Src/mainFSM.c:133:7:vMBTask	8	static
-../Core/Src/mainFSM.c:298:6:vDATATask	32	static
+../Core/Src/mainFSM.c:133:7:vMBTask	16	static
+../Core/Src/mainFSM.c:386:6:vTimer1sInc	0	static
+../Core/Src/mainFSM.c:393:10:GetTimer	8	static
+../Core/Src/mainFSM.c:415:6:ResetTimer	8	static
+../Core/Src/mainFSM.c:298:6:vDATATask	64	static

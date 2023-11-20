@@ -113,7 +113,7 @@ const osThreadAttr_t MBTask_attributes = {
   .cb_size = sizeof(MBTaskControlBlock),
   .stack_mem = &MBTaskBuffer[0],
   .stack_size = sizeof(MBTaskBuffer),
-  .priority = (osPriority_t) osPriorityAboveNormal,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for mbSem */
 osSemaphoreId_t mbSemHandle;
@@ -349,6 +349,7 @@ int main(void)
 
   /* Start scheduler */
   osKernelStart();
+
   /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */

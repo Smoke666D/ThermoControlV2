@@ -15,9 +15,9 @@
 
 
 
-#define MASTER_MODE
+//#define MASTER_MODE
 
-//#define SLAVE_MODE
+#define SLAVE_MODE
 
  void vMainFSM(void *argument);
 
@@ -155,7 +155,7 @@ typedef enum
 #ifdef MASTER_MODE
 
 #define LED_DELAY 250
-#define MAX_SLAVE  15
+#define MAX_SLAVE  16
 #define MAX_CONNECTION_ERROR 20
 
 typedef enum
