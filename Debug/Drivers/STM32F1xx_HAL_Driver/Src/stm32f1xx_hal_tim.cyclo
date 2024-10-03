@@ -85,13 +85,13 @@
 ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:7565:6:TIM_CCxChannelCmd	1
 ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:789:19:HAL_TIM_OC_Start	14
 ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:843:19:HAL_TIM_OC_Stop	9
-../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:878:19:HAL_TIM_OC_Start_IT	20
+../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:878:19:HAL_TIM_OC_Start_IT	18
 ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:971:19:HAL_TIM_OC_Stop_IT	13
 ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:1048:19:HAL_TIM_OC_Start_DMA	29
 ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:1212:19:HAL_TIM_OC_Stop_DMA	13
 ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:1454:19:HAL_TIM_PWM_Start	14
 ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:1508:19:HAL_TIM_PWM_Stop	9
-../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:1543:19:HAL_TIM_PWM_Start_IT	20
+../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:1543:19:HAL_TIM_PWM_Start_IT	18
 ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:1636:19:HAL_TIM_PWM_Stop_IT	13
 ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:1713:19:HAL_TIM_PWM_Start_DMA	29
 ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:1876:19:HAL_TIM_PWM_Stop_DMA	13
@@ -106,8 +106,8 @@
 ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:2877:19:HAL_TIM_OnePulse_Start_IT	6
 ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:2940:19:HAL_TIM_OnePulse_Stop_IT	6
 ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:3213:19:HAL_TIM_Encoder_Start	11
-../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:3307:19:HAL_TIM_Encoder_Stop	9
+../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:3307:19:HAL_TIM_Encoder_Stop	11
 ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:3367:19:HAL_TIM_Encoder_Start_IT	11
-../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:3467:19:HAL_TIM_Encoder_Stop_IT	9
+../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:3467:19:HAL_TIM_Encoder_Stop_IT	11
 ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:3532:19:HAL_TIM_Encoder_Start_DMA	30
-../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:3745:19:HAL_TIM_Encoder_Stop_DMA	9
+../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c:3745:19:HAL_TIM_Encoder_Stop_DMA	11
