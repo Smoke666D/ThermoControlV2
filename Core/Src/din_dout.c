@@ -7,7 +7,7 @@
 #include "main.h"
 
 
-const uint16_t CalPoint[20][2] = {{0,32742},
+const uint16_t CalPoint[32][2] = {{0,32742},
 								 {5,25451},
 								 {10,19936},
 								 {15,15731},
@@ -26,7 +26,19 @@ const uint16_t CalPoint[20][2] = {{0,32742},
 								 {35,6523},
 								 {40,5315},
 								 {45,4355},
-							     {50,3593}
+							     {50,3593},
+								 {55,2973},
+								 {60,2475},
+								 {65,2071},
+							     {70,1741},
+								 {75,1470},
+							     {80,1247},
+							     {85,1062},
+							     {90,908},
+							     {95,780},
+							     {100,672},
+							     {105,582},
+							     {110,506},
 };
 #define K10	10000
 const uint16_t B57164CalPoint[11][2] = {{0,K10*3.5563},
@@ -92,7 +104,8 @@ const uint16_t Resistanse[][2] = {{0,32742},
 								 {47,4028},
 								 {48,3875},
 								 {49,3729},
-								 {50,3593}
+								 {50,3593},
+
 };
 
 const  PIN_CONFIG xDinPortConfig[DIN_CHANNEL]= {{SW1_Pin,SW1_GPIO_Port},
@@ -200,8 +213,8 @@ static void vDINInit()
 #endif
 #ifdef SLAVE_MODE
 
-	eAinCalDataConfig(AIN_2,20);
-	for (int i = 0;i<19;i++)
+	eAinCalDataConfig(AIN_2,32);
+	for (int i = 0;i<32;i++)
 	{
 		d[0].X = CalPoint[i][1];
 		d[0].Y = CalPoint[i][0];
@@ -209,8 +222,8 @@ static void vDINInit()
 		d[1].Y = CalPoint[i+1][0];
 		eSetAinCalPoint(AIN_2,&d[0],i);
 	}
-	eAinCalDataConfig(AIN_3,20);
-	for (int i = 0;i<19;i++)
+	eAinCalDataConfig(AIN_3,32);
+	for (int i = 0;i<31;i++)
 	{
 		d[0].X = CalPoint[i][1];
 		d[0].Y = CalPoint[i][0];
@@ -233,8 +246,8 @@ static void vDINInit()
 			d[1].Y = B57164CalPoint[i+1][0];
 			eSetAinCalPoint(AIN_2,&d[0],i);
 		}
-		eAinCalDataConfig(AIN_3,20);
-		for (int i = 0;i<19;i++)
+		eAinCalDataConfig(AIN_3,32);
+		for (int i = 0;i<31;i++)
 		{
 			d[0].X = CalPoint[i][1];
 			d[0].Y = CalPoint[i][0];
@@ -408,7 +421,7 @@ vDINInit();
 			vSetReg(FAN_SPEED_CONFIG,(uiGetDinMask() & DEVICE_FAN_MASK)>>DEVICE_FAN_OFFSET);
 			temp = vAinGetData(AIN_3);
 			error_flag = 0;
-			if  ((temp>=35000) || (temp <3500))
+			if  ((temp>=35000) || (temp <506))
 			{
 				if ( usGetReg(ERROR_MASTER_STATUS) )
 				{
@@ -417,7 +430,7 @@ vDINInit();
 			    }
 
 				temp = vAinGetData(AIN_2);
-				if  ((temp<35000) && (temp >3500))
+				if  ((temp<35000) && (temp >506))
 				{
 					vSetReg(AIR_TEMP, (uint16_t)fGetAinCalData(AIN_2,temp));
 					if (error_flag ==0)
@@ -454,7 +467,7 @@ vDINInit();
 			vSetReg(ADC1_DATA,vAinGetData(AIN_2));
 			vSetReg(ADC2_DATA,vAinGetData(AIN_3) );
 			temp = vAinGetData(AIN_2);
-			if ((temp>=35000) || (temp <3500))
+			if ((temp>=35000) || (temp <506))
 			{
 				vSetRegInput(WATER_TEMP,-1);
 				vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) | WATER_TEMP_ERROR);
@@ -465,7 +478,7 @@ vDINInit();
 				vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) & ~WATER_TEMP_ERROR);
 			}
 			temp = vAinGetData(AIN_3);
-			if ((temp>=35000) || (temp <3500))
+			if ((temp>=35000) || (temp <506))
 			{
 				vSetRegInput(IN_AIR_TEMP, -1);
 				vSetRegInput(ERROR_STATUS,usGetRegInput(ERROR_STATUS) | AIR_TEMP_ERROR);

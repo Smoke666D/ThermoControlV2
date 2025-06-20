@@ -12,7 +12,7 @@
 
 
 
-#define MAX_CAL_POINT  20
+#define MAX_CAL_POINT  32
 #define MAX_TOTAL_CAL_POINT  ( AIN_NUMBER * MAX_CAL_POINT  ) //Суммароне количество калибровочных точек
 #define MAX_COOF_COUNT       ( AIN_NUMBER * ( MAX_CAL_POINT -1 ) )
 typedef enum {
